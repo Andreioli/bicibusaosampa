@@ -14,6 +14,7 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Bici Busão">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+  <link rel="stylesheet" href="tokens.css">
   <link rel="stylesheet" href="style.css">
   <!-- Fetch everything app.js needs up front instead of discovering it import by import. -->
   <link rel="modulepreload" href="js/geocode.js">
@@ -27,6 +28,7 @@
   <link rel="modulepreload" href="js/rail.js">
   <link rel="modulepreload" href="js/schedule.js">
   <link rel="modulepreload" href="js/time.js">
+  <link rel="modulepreload" href="js/tokens.js">
   <link rel="modulepreload" href="js/ui.js">
   <link rel="preload" href="data/rail-lines.json" as="fetch" crossorigin>
   <link rel="preload" href="data/bike-buses.json" as="fetch" crossorigin>
@@ -44,7 +46,7 @@
       <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M12 3 2 8.5 12 14l10-5.5L12 3Z" fill="currentColor"/><path d="m2 13 10 5.5L22 13M2 17.5 12 23l10-5.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
     </button>
     <button type="button" id="compass-btn" class="map-btn" aria-label="Apontar o norte para cima" title="Norte para cima" hidden>
-      <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="M12 2.5 16 12h-8z" fill="#dc2626"/><path d="M12 21.5 8 12h8z" fill="currentColor" opacity=".55"/></svg>
+      <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="M12 2.5 16 12h-8z" style="fill: var(--map-compass-north)"/><path d="M12 21.5 8 12h8z" fill="currentColor" opacity=".55"/></svg>
     </button>
     <button type="button" id="locate-btn" class="map-btn" aria-pressed="false" aria-label="Minha localização" title="Minha localização">
       <svg viewBox="0 0 512 512" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M445 4 29 195c-48 23-32 93 19 93h176v176c0 51 70 67 93 19L508 67c16-38-25-79-63-63z"/></svg>
@@ -119,10 +121,10 @@
           <summary><h2>Ônibus <span id="bus-count" class="count"></span></h2></summary>
           <p id="bus-status" class="note"></p>
           <ul class="legend bus-key" aria-label="Cores dos ônibus">
-            <li><span class="swatch" style="background:#16a34a"></span>Bici liberada</li>
-            <li><span class="swatch" style="background:#9333ea"></span>Liberada, fora da rota</li>
-            <li><span class="swatch dashed" style="background:#eab308"></span>Fora do horário</li>
-            <li><span class="swatch dashed" style="background:#f97316"></span>Fora do horário e da rota</li>
+            <li><span class="swatch" style="background: var(--map-bus-usual-ok)"></span>Bici liberada</li>
+            <li><span class="swatch" style="background: var(--map-bus-offroute-ok)"></span>Liberada, fora da rota</li>
+            <li><span class="swatch dashed" style="background: var(--map-bus-usual-wait)"></span>Fora do horário</li>
+            <li><span class="swatch dashed" style="background: var(--map-bus-offroute-wait)"></span>Fora do horário e da rota</li>
           </ul>
           <details id="bus-unusual" hidden>
             <summary id="bus-unusual-summary">Fora da rota habitual</summary>
@@ -163,18 +165,18 @@
       </ul>
       <h3 class="legend-title">Ônibus</h3>
       <ul class="legend">
-        <li><span class="swatch" style="background:#16a34a"></span>Bici liberada</li>
-        <li><span class="swatch" style="background:#9333ea"></span>Bici liberada, fora da rota</li>
-        <li><span class="swatch dashed" style="background:#eab308"></span>Fora do horário (contorno tracejado)</li>
-        <li><span class="swatch dashed" style="background:#f97316"></span>Fora do horário e da rota</li>
-        <li><span class="swatch square" style="background:#0e7490"></span>Seletivo EMTU (bici no bagageiro)</li>
+        <li><span class="swatch" style="background: var(--map-bus-usual-ok)"></span>Bici liberada</li>
+        <li><span class="swatch" style="background: var(--map-bus-offroute-ok)"></span>Bici liberada, fora da rota</li>
+        <li><span class="swatch dashed" style="background: var(--map-bus-usual-wait)"></span>Fora do horário (contorno tracejado)</li>
+        <li><span class="swatch dashed" style="background: var(--map-bus-offroute-wait)"></span>Fora do horário e da rota</li>
+        <li><span class="swatch square" style="background: var(--map-bus-emtu)"></span>Seletivo EMTU (bici no bagageiro)</li>
       </ul>
       <h3 class="legend-title">Onde deixar a bici</h3>
       <ul class="legend">
-        <li><span class="dot" style="background:#16a34a"></span>Grátis</li>
-        <li><span class="dot" style="background:#2563eb"></span>Grátis com cadastro</li>
-        <li><span class="dot" style="background:#db2777"></span>Pago</li>
-        <li><span class="dot" style="background:#78716c"></span>Só clientes</li>
+        <li><span class="dot" style="background: var(--map-parking-free)"></span>Grátis</li>
+        <li><span class="dot" style="background: var(--map-parking-signup)"></span>Grátis com cadastro</li>
+        <li><span class="dot" style="background: var(--map-parking-paid)"></span>Pago</li>
+        <li><span class="dot" style="background: var(--map-parking-customers)"></span>Só clientes</li>
         <li><span class="dot closed"></span>Fechado agora</li>
       </ul>
       <ul class="legend shapes">

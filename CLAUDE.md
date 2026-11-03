@@ -16,6 +16,7 @@ light, reusable-data choices.
 npm run dev          # wrangler pages dev → http://localhost:8788 (reads SPTRANS_TOKEN from .env)
 npm test             # node --test: schedule rules, holidays, headings, lanes, bike parking, function helpers
 npm run build:data   # regenerate data files (`-- rail`, `-- bus`, `-- emtu`, `-- parking` or `-- fleet` for one)
+npm run build:tokens # design/tokens/ → public/tokens.css, public/js/tokens.js and the tables in DESIGN.md
 node scripts/suggest-lines.mjs [--write]   # compare live rack buses with the expected lines
 node scripts/plan.mjs --from=LAT,LON --to=LAT,LON [--at=…] [--power=suave]   # try the trip planner
 ```
@@ -46,7 +47,7 @@ append `window.__map = map;`.
     helpers that break it in the browser.
   - `manifest.webmanifest`, `icons/icon-*.png`: PWA install and favicon, generated from
     `assets/icon.jpg` (gitignored): full-bleed 180 for iOS, rounded 32/192/512 with
-    transparent corners, maskable 512 at 70 % on dark brown `#3d2b1f` (the manifest's splash colour too).
+    transparent corners, maskable 512 at 70 % on dark brown (`brand.splash`, the manifest's splash colour too).
   - `vendor/leaflet-rotate/`: leaflet-rotate 0.2.8 (GPL-3.0) as patched by Câmera
     Topográfica (steadier touch rotation and pinch anchor). Map rotation: two fingers
     on phones, Shift + wheel with a mouse; a compass button resets north.
@@ -244,6 +245,12 @@ append `window.__map = map;`.
 
 ## Visual conventions (chosen by the maintainer)
 
+Colours, shadows and the font are design tokens: read DESIGN.md before any visual change.
+Edit `design/tokens/*.tokens.json` (DTCG 2025.10), run `npm run build:tokens`, never edit
+`public/tokens.css` or `public/js/tokens.js`, and use no colour literal in CSS, HTML or JS
+(`test/design.test.js` enforces it). The rules below are what the colours *mean*; the
+tokens hold the values.
+
 - **Rail lines:** thin continuous lines in the status colour: green when bikes are
   allowed now, yellow when the line runs but it's outside bike hours, red when the line
   is closed or stopped.
@@ -253,7 +260,7 @@ append `window.__map = map;`.
   at this hour, and is this one of the line's usual superarticulated lines?
   Allowed + usual = green, allowed + off-route = purple, outside hours + usual =
   yellow, outside hours + off-route = orange. EMTU seletivo coaches and routes are
-  teal `#0e7490` whatever the hour (no published rule), with square-cornered icons.
+  teal (`map.bus.emtu`) whatever the hour (no published rule), with square-cornered icons.
 - **Bus icons:** a rounded box in the bus colour with a white arrow pointing the
   direction of travel.
 - **Bus routes:** solid lines in the bus colour, 10 m wide on the ground (never under

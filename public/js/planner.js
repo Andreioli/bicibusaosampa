@@ -5,6 +5,7 @@ import { placeName, searchPlaces } from './geocode.js';
 import { ACCESS } from './parking.js';
 import { balance, DEFAULT_TIME_WEIGHT, flatSpeed, POWER_LEVELS, TIME_WEIGHTS } from './raptor.js';
 import { spParts } from './time.js';
+import { tokens } from './tokens.js';
 import { toast } from './ui.js';
 
 const PACES = [
@@ -14,7 +15,8 @@ const PACES = [
   ['competicao', 'Competição'],
 ];
 const GPS_ICON = '<svg viewBox="0 0 512 512" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M445 4 29 195c-48 23-32 93 19 93h176v176c0 51 70 67 93 19L508 67c16-38-25-79-63-63z"/></svg>';
-const COLORS = { walk: '#57534e', bike: '#dc2626', busBike: '#16a34a', bus: '#1c1917', emtu: '#0e7490' };
+const PLAN = tokens.map.plan;
+const COLORS = { walk: PLAN.walk, bike: PLAN.bike, busBike: PLAN.busBike, bus: PLAN.bus, emtu: PLAN.emtu };
 const MODE_ICON = { walk: '🚶', bike: '🚲', park: '🅿️', station: '🚉', bus: '🚌', metro: '🚇', train: '🚆' };
 
 const $ = (sel) => document.querySelector(sel);
@@ -722,7 +724,7 @@ export function initPlanner({ map, rotatingPane, locate, sheetInsets, railLines,
         const n = leg.kind === 'ride' && rideCount[glyph] > 1 ? (rideSeen[glyph] = (rideSeen[glyph] ?? 0) + 1) : null;
         iconLegs.push({ path, glyph, color, n });
       } else {
-        L.polyline(path, { renderer, color: '#ffffff', weight: 7, opacity: 0.8, interactive: false }).addTo(routeLayer);
+        L.polyline(path, { renderer, color: PLAN.casing, weight: 7, opacity: 0.8, interactive: false }).addTo(routeLayer);
         L.polyline(path, { renderer, color, weight: 4, dashArray: '1 7', lineCap: 'round', bubblingMouseEvents: false }).addTo(routeLayer);
       }
       for (const p of path) bounds.extend(p);
@@ -922,7 +924,7 @@ export function initPlanner({ map, rotatingPane, locate, sheetInsets, railLines,
       labelTexts.push({ latlngs, shift, guide, texts: [textOn(guide, content, className, color)] });
     };
     // Furthest out, the whole trip in one label.
-    if (tripLabel) add(tripLabel.path, SHIFT.total, tripLabel.info, 'plan-leg-label total', '#1c1917');
+    if (tripLabel) add(tripLabel.path, SHIFT.total, tripLabel.info, 'plan-leg-label total', PLAN.total);
     // Each leg: time · kcal · distance on one side, the line it rides on the other.
     for (const { path, info, line, color } of labelLegs) {
       add(path, SHIFT.info, info, 'plan-leg-label', color);

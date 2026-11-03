@@ -1,0 +1,225 @@
+{
+  "$description": "Interface (painéis, botões, campos) que não muda entre claro e escuro. O que muda fica em themes/.",
+  "ui": {
+    "content": {
+      "$type": "color",
+      "on-color": {
+        "$value": "{ref.color.white}",
+        "$description": "Texto e símbolos sobre fundo colorido: badges de linha, pins, toast.",
+        "$extensions": {
+          "info.bicisampa": {
+            "usage": ["text", "icon"],
+            "avoid": ["texto sobre os fundos da interface (ui.surface.*)"],
+            "contrast": [
+              {
+                "against": "ui.toast.surface",
+                "min": 4.5
+              },
+              {
+                "against": "map.bus.usual.ok",
+                "min": 4.5,
+                "departure": {
+                  "rule": "texto 4,5:1",
+                  "reason": "Badge de linha: branco sobre o verde dá 3,30:1. A sombra do texto ajuda, mas não substitui contraste. Rever no redesign.",
+                  "since": "2026-11-03"
+                }
+              },
+              {
+                "against": "map.bus.usual.wait",
+                "min": 4.5,
+                "departure": {
+                  "rule": "texto 4,5:1",
+                  "reason": "Badge de linha: branco sobre o amarelo dá 1,92:1. Rever no redesign.",
+                  "since": "2026-11-03"
+                }
+              },
+              {
+                "against": "map.bus.offroute.ok",
+                "min": 4.5
+              },
+              {
+                "against": "map.bus.offroute.wait",
+                "min": 4.5,
+                "departure": {
+                  "rule": "texto 4,5:1",
+                  "reason": "Badge de linha: branco sobre o laranja dá 2,80:1. Rever no redesign.",
+                  "since": "2026-11-03"
+                }
+              },
+              {
+                "against": "map.bus.emtu",
+                "min": 4.5
+              }
+            ]
+          }
+        }
+      }
+    },
+    "toast": {
+      "$type": "color",
+      "surface": {
+        "$value": "{ref.color.alpha.night-94}",
+        "$description": "Fundo do toast (\"Origem marcada no mapa · Desfazer\").",
+        "$extensions": {
+          "info.bicisampa": {
+            "usage": ["background"]
+          }
+        }
+      }
+    },
+    "outline": {
+      "$type": "color",
+      "subtle": {
+        "$value": "{ref.color.alpha.black-15}",
+        "$description": "Aro das bolinhas de status na legenda e nas listas.",
+        "$extensions": {
+          "info.bicisampa": {
+            "usage": ["border"]
+          }
+        }
+      }
+    },
+    "shadow": {
+      "$type": "shadow",
+      "raised": {
+        "$value": {
+          "color": "{ref.color.alpha.black-18}",
+          "offsetX": {
+            "value": 0,
+            "unit": "px"
+          },
+          "offsetY": {
+            "value": 4,
+            "unit": "px"
+          },
+          "blur": {
+            "value": 24,
+            "unit": "px"
+          },
+          "spread": {
+            "value": 0,
+            "unit": "px"
+          }
+        },
+        "$description": "Painéis e botões flutuando sobre o mapa. Nunca em ícones do mapa: no celular cada sombra é repintada a cada quadro.",
+        "$extensions": {
+          "info.bicisampa": {
+            "usage": ["shadow"],
+            "avoid": ["ícones do mapa"]
+          }
+        }
+      },
+      "overlay": {
+        "$value": {
+          "color": "{ref.color.alpha.black-35}",
+          "offsetX": {
+            "value": 0,
+            "unit": "px"
+          },
+          "offsetY": {
+            "value": 6,
+            "unit": "px"
+          },
+          "blur": {
+            "value": 24,
+            "unit": "px"
+          },
+          "spread": {
+            "value": 0,
+            "unit": "px"
+          }
+        },
+        "$description": "O que pede atenção acima de tudo: o aviso de nova versão.",
+        "$extensions": {
+          "info.bicisampa": {
+            "usage": ["shadow"],
+            "avoid": ["ícones do mapa"]
+          }
+        }
+      },
+      "pin": {
+        "$value": {
+          "color": "{ref.color.alpha.black-45}",
+          "offsetX": {
+            "value": 0,
+            "unit": "px"
+          },
+          "offsetY": {
+            "value": 1,
+            "unit": "px"
+          },
+          "blur": {
+            "value": 3,
+            "unit": "px"
+          },
+          "spread": {
+            "value": 0,
+            "unit": "px"
+          }
+        },
+        "$description": "Pins A/B/parada e o marcador de troca de modo. São poucos na tela, então a sombra não pesa.",
+        "$extensions": {
+          "info.bicisampa": {
+            "usage": ["shadow"]
+          }
+        }
+      },
+      "text-on-color": {
+        "$value": {
+          "color": "{ref.color.alpha.black-50}",
+          "offsetX": {
+            "value": 0,
+            "unit": "px"
+          },
+          "offsetY": {
+            "value": 0,
+            "unit": "px"
+          },
+          "blur": {
+            "value": 2,
+            "unit": "px"
+          },
+          "spread": {
+            "value": 0,
+            "unit": "px"
+          }
+        },
+        "$description": "Sombra do texto dos badges de linha, para o branco ler sobre o amarelo e o laranja.",
+        "$extensions": {
+          "info.bicisampa": {
+            "usage": ["text-shadow"]
+          }
+        }
+      }
+    },
+    "font": {
+      "family": {
+        "$type": "fontFamily",
+        "base": {
+          "$value": ["system-ui", "-apple-system", "Segoe UI", "Roboto", "sans-serif"],
+          "$description": "Fonte do sistema: zero download, e o texto fica com a cara do celular de quem usa.",
+          "$extensions": {
+            "info.bicisampa": {
+              "usage": ["font"]
+            }
+          }
+        }
+      }
+    },
+    "size": {
+      "$type": "dimension",
+      "touch": {
+        "$value": {
+          "value": 44,
+          "unit": "px"
+        },
+        "$description": "Lado mínimo de tudo que se toca (Apple HIG: 44 pt).",
+        "$extensions": {
+          "info.bicisampa": {
+            "usage": ["width", "height"]
+          }
+        }
+      }
+    }
+  }
+}

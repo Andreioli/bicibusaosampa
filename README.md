@@ -103,6 +103,8 @@ sem regra publicada pela EMTU).
 
 ## Como funciona
 
+O visual (cores, tokens, regras e decisões de design) está em [DESIGN.md](DESIGN.md).
+
 ```
 public/                       site estático (Leaflet)
   data/rail-lines.json        linhas, cores, horários de operação e regras de bicicleta

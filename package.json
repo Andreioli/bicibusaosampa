@@ -8,7 +8,8 @@
     "dev": "wrangler pages dev",
     "build:data": "node scripts/build-data.mjs",
     "test": "node --test",
-    "deploy": "wrangler pages deploy"
+    "deploy": "wrangler pages deploy",
+    "build:tokens": "node scripts/build-tokens.mjs"
   },
   "devDependencies": {
     "fflate": "^0.8.2",

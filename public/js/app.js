@@ -8,13 +8,16 @@ import { initPlanner } from './planner.js';
 import { railStatus as lineStatus } from './rail.js';
 import { bikeStatus, describeTime } from './schedule.js';
 import { holidayName, spParts } from './time.js';
+import { tokens } from './tokens.js';
 import { initSheets, initUpdates, sheetInsets } from './ui.js';
 
 const RAIL_REFRESH_MS = 60_000;
 const BUS_REFRESH_MS = 20_000;
 const CLOCK_REFRESH_MS = 15_000;
 
-const STATUS_COLORS = { ok: '#16a34a', wait: '#eab308', closed: '#dc2626' };
+// Colours are design tokens (design/tokens/map.tokens.json, DESIGN.md).
+const MAP = tokens.map;
+const STATUS_COLORS = { ok: MAP.status.ok, wait: MAP.status.wait, closed: MAP.status.closed };
 // Bus colours (icons, routes, badges) answer two questions at once: are bikes allowed
 // on buses at this hour, and does this line usually run superarticulated buses?
 //                 usual line          off its usual lines
@@ -22,13 +25,13 @@ const STATUS_COLORS = { ok: '#16a34a', wait: '#eab308', closed: '#dc2626' };
 //   outside hours  yellow              orange
 // Buses have no "closed" state.
 const BUS_COLORS = {
-  ok: { expected: '#16a34a', unusual: '#9333ea' },
-  wait: { expected: '#eab308', unusual: '#f97316' },
+  ok: { expected: MAP.bus.usual.ok, unusual: MAP.bus.offroute.ok },
+  wait: { expected: MAP.bus.usual.wait, unusual: MAP.bus.offroute.wait },
 };
 const busColor = (status, unusual) => BUS_COLORS[status][unusual ? 'unusual' : 'expected'];
 // EMTU seletivo coaches carry the bike in the luggage hold, with no published hours:
 // one colour of their own, and boxier icons.
-const EMTU_COLOR = '#0e7490';
+const EMTU_COLOR = MAP.bus.emtu;
 const isEmtu = (x) => x?.agency === 'emtu';
 // Vehicle prefixes are only unique within an operator.
 const busId = (bus) => (isEmtu(bus) ? `emtu:${bus.prefix}` : bus.prefix);
@@ -315,7 +318,7 @@ function linePopup(line) {
     <p style="margin:0">${esc(line.operator)}</p>
     <p style="margin:6px 0 0"><span class="dot ${s.status}" style="vertical-align:-1px"></span> <b>${STATUS_LABELS[s.status]}</b><br>${esc(s.detail)}</p>
     ${s.live ? `<p style="margin:6px 0 0">⚠️ ${esc(s.live)}</p>` : ''}
-    ${s.note ? `<p style="margin:6px 0 0;color:var(--muted)">${esc(s.note)}</p>` : ''}`;
+    ${s.note ? `<p style="margin:6px 0 0;color:var(--ui-content-secondary)">${esc(s.note)}</p>` : ''}`;
 }
 
 function renderRail() {
@@ -444,11 +447,11 @@ function dropUnusualLine(line) {
 const busStopIcon = L.divIcon({
   className: 'bus-stop-icon',
   html: `<svg viewBox="0 0 14 16" width="14" height="16" aria-hidden="true">
-    <rect x="1" y="0.8" width="12" height="12.4" rx="2.2" fill="#1c1917" stroke="#fff" stroke-width="1"/>
-    <rect x="2.8" y="2.6" width="8.4" height="5" rx=".8" fill="#fff"/>
-    <circle cx="3.9" cy="10.3" r="1" fill="#fde68a"/><circle cx="10.1" cy="10.3" r="1" fill="#fde68a"/>
-    <rect x="2.2" y="12.6" width="2.4" height="2.8" rx=".7" fill="#1c1917" stroke="#fff" stroke-width=".8"/>
-    <rect x="9.4" y="12.6" width="2.4" height="2.8" rx=".7" fill="#1c1917" stroke="#fff" stroke-width=".8"/>
+    <rect x="1" y="0.8" width="12" height="12.4" rx="2.2" fill="${MAP.stop.body}" stroke="${MAP.icon.on}" stroke-width="1"/>
+    <rect x="2.8" y="2.6" width="8.4" height="5" rx=".8" fill="${MAP.icon.on}"/>
+    <circle cx="3.9" cy="10.3" r="1" fill="${MAP.stop.lights}"/><circle cx="10.1" cy="10.3" r="1" fill="${MAP.stop.lights}"/>
+    <rect x="2.2" y="12.6" width="2.4" height="2.8" rx=".7" fill="${MAP.stop.body}" stroke="${MAP.icon.on}" stroke-width=".8"/>
+    <rect x="9.4" y="12.6" width="2.4" height="2.8" rx=".7" fill="${MAP.stop.body}" stroke="${MAP.icon.on}" stroke-width=".8"/>
   </svg>`,
   iconSize: [32, 32], // tap target around the 14×16 icon
   iconAnchor: [16, 16],
@@ -532,7 +535,7 @@ function busBadge(code) {
 // EMTU coaches get square corners.
 const busSvg = (body, ink, dashed, corner = 3) => `<svg class="bus-icon" viewBox="0 0 26 14" width="26" height="14" aria-hidden="true">
   <rect x="1" y="1" width="24" height="12" rx="${corner}" fill="${body}" stroke="${ink}" stroke-width="2"${dashed ? ' stroke-dasharray="3 2"' : ''}/>
-  <path d="M6 7h11M13.5 3.6 17.5 7l-4 3.4" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M6 7h11M13.5 3.6 17.5 7l-4 3.4" fill="none" stroke="${MAP.icon.on}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>`;
 
 const busIcons = new Map();
@@ -542,7 +545,7 @@ function busIcon(status, unusual) {
   if (!busIcons.has(key)) {
     busIcons.set(key, L.divIcon({
       className: 'bus-marker',
-      html: status === 'emtu' ? busSvg(EMTU_COLOR, '#1c1917', false, 0.8) : busSvg(busColor(status, unusual), '#1c1917', status !== 'ok'),
+      html: status === 'emtu' ? busSvg(EMTU_COLOR, MAP.icon.ink, false, 0.8) : busSvg(busColor(status, unusual), MAP.icon.ink, status !== 'ok'),
       // A 40 px box around the small icon: what the finger hits.
       iconSize: [40, 40],
       iconAnchor: [20, 20],
@@ -584,11 +587,11 @@ function busPopup(bus, s) {
     : `<p style="margin:6px 0 0"><span class="dot ${s.status}" style="vertical-align:-1px"></span> <b>${STATUS_LABELS[s.status]}</b><br>${esc(s.detail)}</p>`;
   return `<h3>Ônibus ${esc(bus.prefix)}</h3>
     <p style="margin:0">${busBadge(bus.line)} → ${esc(bus.to)}</p>
-    ${line?.name ? `<p style="margin:2px 0 0;color:var(--muted)">${esc(line.name)}</p>` : ''}
+    ${line?.name ? `<p style="margin:2px 0 0;color:var(--ui-content-secondary)">${esc(line.name)}</p>` : ''}
     ${bus.expected ? '' : '<p style="margin:6px 0 0">⚠️ Fora da rota habitual</p>'}
     ${rule}
     ${bus.accessible ? '<p style="margin:6px 0 0">♿ Acessível</p>' : ''}
-    ${seen ? `<p style="margin:0;color:var(--muted)">Posição das ${describeTime(seen)}</p>` : ''}
+    ${seen ? `<p style="margin:0;color:var(--ui-content-secondary)">Posição das ${describeTime(seen)}</p>` : ''}
     ${line?.note ? `<p style="margin:6px 0 0">⚠️ ${esc(line.note)}</p>` : ''}`;
 }
 
@@ -753,7 +756,7 @@ async function refreshBuses() {
 
 // Colour = can I leave my bike here now, and on what terms. Shape = kind: a circle
 // for a paraciclo (stands), a house for a bicicletário (covered, usually staffed).
-const PARKING_COLORS = { livre: '#16a34a', cadastro: '#2563eb', pago: '#db2777', clientes: '#78716c', closed: '#dc2626' };
+const PARKING_COLORS = { livre: MAP.parking.free, cadastro: MAP.parking.signup, pago: MAP.parking.paid, clientes: MAP.parking.customers, closed: MAP.parking.closed };
 // A white inverted-U stand (the paraciclo symbol) in a circle or a house, outlined in
 // dark ink like the bus icons so green spots stand out on green bus routes.
 const PARKING_SHAPES = {
@@ -764,12 +767,12 @@ const PARKING_SHAPES = {
 const parkingSvg = (kind, fill, closed = false) => {
   const { size, outline, stand } = PARKING_SHAPES[kind];
   return `<svg viewBox="0 0 24 24" width="${size}" height="${size}" aria-hidden="true">
-    <g fill="${fill}" stroke="#1c1917" stroke-width="1.6">${outline}</g>
-    <path d="M8.6 16.4V11.4a3.4 3.4 0 0 1 6.8 0v5M6.6 16.6h10.8" transform="translate(0 ${stand})" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/>
-    ${closed ? '<path d="M4.5 19.5 19.5 4.5" stroke="#1c1917" stroke-width="4.2" stroke-linecap="round"/><path d="M4.5 19.5 19.5 4.5" stroke="#fff" stroke-width="2" stroke-linecap="round"/>' : ''}
+    <g fill="${fill}" stroke="${MAP.icon.ink}" stroke-width="1.6">${outline}</g>
+    <path d="M8.6 16.4V11.4a3.4 3.4 0 0 1 6.8 0v5M6.6 16.6h10.8" transform="translate(0 ${stand})" fill="none" stroke="${MAP.icon.on}" stroke-width="2.2" stroke-linecap="round"/>
+    ${closed ? `<path d="M4.5 19.5 19.5 4.5" stroke="${MAP.icon.ink}" stroke-width="4.2" stroke-linecap="round"/><path d="M4.5 19.5 19.5 4.5" stroke="${MAP.icon.on}" stroke-width="2" stroke-linecap="round"/>` : ''}
   </svg>`;
 };
-for (const el of document.querySelectorAll('[data-parking-shape]')) el.innerHTML = parkingSvg(el.dataset.parkingShape, '#78716c');
+for (const el of document.querySelectorAll('[data-parking-shape]')) el.innerHTML = parkingSvg(el.dataset.parkingShape, MAP.parking.customers);
 
 const parkingIcons = new Map();
 function parkingIcon(kind, colorKey) {
@@ -793,10 +796,10 @@ function parkingPopup(p) {
     ? `<a href="https://www.openstreetmap.org/${esc(p.osm)}" target="_blank" rel="noopener">OpenStreetMap</a>`
     : 'GeoSampa (Prefeitura de SP)';
   return `<h3>${esc(p.name ?? (p.kind === 'bicicletario' ? 'Bicicletário' : 'Paraciclo'))}</h3>
-    ${facts.length ? `<p style="margin:0;color:var(--muted)">${esc(facts.join(' · '))}</p>` : ''}
+    ${facts.length ? `<p style="margin:0;color:var(--ui-content-secondary)">${esc(facts.join(' · '))}</p>` : ''}
     <p style="margin:6px 0 0"><span class="dot" style="background:${PARKING_COLORS[p.access]};vertical-align:-1px"></span> <b>${ACCESS[p.access].label}</b><br>${esc(ACCESS[p.access].detail)}${p.biometric ? ' Entrada com biometria.' : ''}</p>
     ${s.detail ? `<p style="margin:6px 0 0">${s.open === false ? '<span class="dot closed" style="vertical-align:-1px"></span> ' : ''}${esc(s.detail)}</p>` : ''}
-    <p style="margin:6px 0 0;font-size:12px;color:var(--muted)">Fonte: ${source}</p>`;
+    <p style="margin:6px 0 0;font-size:12px;color:var(--ui-content-secondary)">Fonte: ${source}</p>`;
 }
 
 const parkingMarkers = []; // [{ marker, props }]

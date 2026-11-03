@@ -1,0 +1,35 @@
+{
+  "$description": "Interface no modo escuro: só os valores. Descrição e metadados ficam em light.tokens.json, e o build recusa um token que exista num arquivo e falte no outro.",
+  "ui": {
+    "$type": "color",
+    "surface": {
+      "page": {
+        "$value": "{ref.color.stone.950}"
+      },
+      "panel": {
+        "$value": "{ref.color.alpha.stone-900-97}"
+      }
+    },
+    "content": {
+      "primary": {
+        "$value": "{ref.color.stone.100}"
+      },
+      "secondary": {
+        "$value": "{ref.color.stone.400}"
+      }
+    },
+    "border": {
+      "default": {
+        "$value": "{ref.color.stone.800}"
+      }
+    },
+    "accent": {
+      "default": {
+        "$value": "{ref.color.teal.400}"
+      },
+      "on": {
+        "$value": "{ref.color.teal.950}"
+      }
+    }
+  }
+}

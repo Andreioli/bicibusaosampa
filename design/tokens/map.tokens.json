@@ -1,0 +1,356 @@
+{
+  "$description": "Simbologia do mapa. Cada cor responde a uma pergunta de quem pedala; o significado vem antes do tom. Não muda no modo escuro: o mapa precisa ler igual de dia e de noite. As cores oficiais das linhas de metrô e trem não estão aqui: são dados das operadoras (public/data/rail-lines.json).",
+  "map": {
+    "$type": "color",
+    "status": {
+      "$description": "Dá para levar a bici agora? Trilhos, pontos e a legenda.",
+      "ok": {
+        "$value": "{ref.color.green.600}",
+        "$description": "Bici liberada agora.",
+        "$extensions": {
+          "info.bicisampa": {
+            "usage": ["line", "fill"]
+          }
+        }
+      },
+      "wait": {
+        "$value": "{ref.color.yellow.500}",
+        "$description": "A linha opera, mas está fora do horário da bici. Sempre com tracejado, para não depender só da cor.",
+        "$extensions": {
+          "info.bicisampa": {
+            "usage": ["line", "fill"],
+            "avoid": ["linha contínua: fora do horário é sempre tracejado"]
+          }
+        }
+      },
+      "closed": {
+        "$value": "{ref.color.red.600}",
+        "$description": "Linha fechada ou paralisada. Sempre com pontilhado.",
+        "$extensions": {
+          "info.bicisampa": {
+            "usage": ["line", "fill"],
+            "avoid": ["linha contínua: fechado é sempre pontilhado"]
+          }
+        }
+      }
+    },
+    "bus": {
+      "$description": "Ônibus SPTrans: duas perguntas numa cor. A bici pode subir agora (Portaria SMT 32/2016)? E este é um superarticulado na linha habitual?",
+      "usual": {
+        "ok": {
+          "$value": "{ref.color.green.600}",
+          "$description": "Linha habitual, bici liberada.",
+          "$extensions": {
+            "info.bicisampa": {
+              "usage": ["fill", "line", "background"]
+            }
+          }
+        },
+        "wait": {
+          "$value": "{ref.color.yellow.500}",
+          "$description": "Linha habitual, fora do horário da bici. Contorno tracejado.",
+          "$extensions": {
+            "info.bicisampa": {
+              "usage": ["fill", "line", "background"]
+            }
+          }
+        }
+      },
+      "offroute": {
+        "ok": {
+          "$value": "{ref.color.purple.600}",
+          "$description": "Superarticulado fora das linhas habituais, bici liberada.",
+          "$extensions": {
+            "info.bicisampa": {
+              "usage": ["fill", "line", "background"]
+            }
+          }
+        },
+        "wait": {
+          "$value": "{ref.color.orange.500}",
+          "$description": "Fora das linhas habituais e fora do horário da bici. Contorno tracejado.",
+          "$extensions": {
+            "info.bicisampa": {
+              "usage": ["fill", "line", "background"]
+            }
+          }
+        }
+      },
+      "emtu": {
+        "$value": "{ref.color.cyan.700}",
+        "$description": "Seletivo EMTU (bici no bagageiro). Uma cor só, a qualquer hora: a EMTU não publica regra. Cantos retos no ícone.",
+        "$extensions": {
+          "info.bicisampa": {
+            "usage": ["fill", "line", "background"]
+          }
+        }
+      }
+    },
+    "parking": {
+      "$description": "Dá para deixar a bici aqui agora, e em que condições? A forma diz o tipo (casinha = bicicletário, círculo = paraciclo).",
+      "free": {
+        "$value": "{ref.color.green.600}",
+        "$description": "Livre: gratuito, sem cadastro.",
+        "$extensions": {
+          "info.bicisampa": {
+            "usage": ["fill"]
+          }
+        }
+      },
+      "signup": {
+        "$value": "{ref.color.blue.600}",
+        "$description": "Gratuito com cadastro no local (estações e terminais).",
+        "$extensions": {
+          "info.bicisampa": {
+            "usage": ["fill"]
+          }
+        }
+      },
+      "paid": {
+        "$value": "{ref.color.pink.600}",
+        "$description": "Pago.",
+        "$extensions": {
+          "info.bicisampa": {
+            "usage": ["fill"]
+          }
+        }
+      },
+      "customers": {
+        "$value": "{ref.color.stone.500}",
+        "$description": "Só clientes ou autorizados.",
+        "$extensions": {
+          "info.bicisampa": {
+            "usage": ["fill"]
+          }
+        }
+      },
+      "closed": {
+        "$value": "{ref.color.red.600}",
+        "$description": "Fechado agora, pelo horário do OpenStreetMap. Vence as outras cores e ganha uma barra diagonal.",
+        "$extensions": {
+          "info.bicisampa": {
+            "usage": ["fill"]
+          }
+        }
+      }
+    },
+    "icon": {
+      "ink": {
+        "$value": "{ref.color.stone.900}",
+        "$description": "Contorno escuro dos ícones do mapa. Destaca o verde de um bicicletário sobre o verde de um itinerário, sem sombra (que pesa no celular).",
+        "$extensions": {
+          "info.bicisampa": {
+            "usage": ["outline"]
+          }
+        }
+      },
+      "on": {
+        "$value": "{ref.color.white}",
+        "$description": "Símbolos e halos brancos: seta do ônibus, suporte do paraciclo, contorno das estações, texto dos rótulos da rota.",
+        "$extensions": {
+          "info.bicisampa": {
+            "usage": ["icon", "outline", "text"],
+            "contrast": [
+              {
+                "against": "map.bus.usual.ok",
+                "min": 3
+              },
+              {
+                "against": "map.bus.usual.wait",
+                "min": 3,
+                "departure": {
+                  "rule": "não-texto 3:1",
+                  "reason": "A seta branca no ônibus amarelo dá 1,92:1. O contorno escuro (map.icon.ink) segura o ícone. Rever no redesign.",
+                  "since": "2026-11-03"
+                }
+              },
+              {
+                "against": "map.bus.offroute.ok",
+                "min": 3
+              },
+              {
+                "against": "map.bus.offroute.wait",
+                "min": 3,
+                "departure": {
+                  "rule": "não-texto 3:1",
+                  "reason": "A seta branca no ônibus laranja dá 2,80:1. Rever no redesign.",
+                  "since": "2026-11-03"
+                }
+              },
+              {
+                "against": "map.bus.emtu",
+                "min": 3
+              },
+              {
+                "against": "map.parking.free",
+                "min": 3
+              },
+              {
+                "against": "map.parking.signup",
+                "min": 3
+              },
+              {
+                "against": "map.parking.paid",
+                "min": 3
+              },
+              {
+                "against": "map.parking.customers",
+                "min": 3
+              },
+              {
+                "against": "map.parking.closed",
+                "min": 3
+              }
+            ]
+          }
+        }
+      }
+    },
+    "stop": {
+      "body": {
+        "$value": "{ref.color.stone.900}",
+        "$description": "Ícone de ponto de ônibus (ônibus de frente).",
+        "$extensions": {
+          "info.bicisampa": {
+            "usage": ["fill"]
+          }
+        }
+      },
+      "lights": {
+        "$value": "{ref.color.amber.200}",
+        "$description": "Faróis do ícone de ponto.",
+        "$extensions": {
+          "info.bicisampa": {
+            "usage": ["fill"]
+          }
+        }
+      }
+    },
+    "location": {
+      "accent": {
+        "$value": "{ref.color.blue.600}",
+        "$description": "Bolinha azul de \"você está aqui\" e o círculo de precisão.",
+        "$extensions": {
+          "info.bicisampa": {
+            "usage": ["fill", "line"]
+          }
+        }
+      }
+    },
+    "compass": {
+      "north": {
+        "$value": "{ref.color.red.600}",
+        "$description": "Ponta norte da bússola.",
+        "$extensions": {
+          "info.bicisampa": {
+            "usage": ["fill"]
+          }
+        }
+      }
+    },
+    "plan": {
+      "$description": "Trajeto planejado: a cor diz como se anda em cada trecho.",
+      "walk": {
+        "$value": "{ref.color.stone.600}",
+        "$description": "A pé.",
+        "$extensions": {
+          "info.bicisampa": {
+            "usage": ["line", "fill"]
+          }
+        }
+      },
+      "bike": {
+        "$value": "{ref.color.red.600}",
+        "$description": "Pedalando.",
+        "$extensions": {
+          "info.bicisampa": {
+            "usage": ["line", "fill"]
+          }
+        }
+      },
+      "bus-bike": {
+        "$value": "{ref.color.green.600}",
+        "$description": "Ônibus com a bici a bordo.",
+        "$extensions": {
+          "info.bicisampa": {
+            "usage": ["line", "fill"]
+          }
+        }
+      },
+      "bus": {
+        "$value": "{ref.color.stone.900}",
+        "$description": "Ônibus sem a bici (ela ficou num bicicletário).",
+        "$extensions": {
+          "info.bicisampa": {
+            "usage": ["line", "fill"]
+          }
+        }
+      },
+      "emtu": {
+        "$value": "{ref.color.cyan.700}",
+        "$description": "Seletivo EMTU, bici no bagageiro.",
+        "$extensions": {
+          "info.bicisampa": {
+            "usage": ["line", "fill"]
+          }
+        }
+      },
+      "casing": {
+        "$value": "{ref.color.white}",
+        "$description": "Faixa branca por baixo do trajeto, para ele saltar sobre o mapa.",
+        "$extensions": {
+          "info.bicisampa": {
+            "usage": ["line", "fill"]
+          }
+        }
+      },
+      "total": {
+        "$value": "{ref.color.stone.900}",
+        "$description": "Contorno do rótulo \"Total\" da viagem.",
+        "$extensions": {
+          "info.bicisampa": {
+            "usage": ["line", "fill"]
+          }
+        }
+      },
+      "transfer": {
+        "$value": "{ref.color.stone.900}",
+        "$description": "Marcador ⇄ de troca de modo.",
+        "$extensions": {
+          "info.bicisampa": {
+            "usage": ["line", "fill"]
+          }
+        }
+      },
+      "pin": {
+        "from": {
+          "$value": "{ref.color.teal.700}",
+          "$description": "Pin A (origem).",
+          "$extensions": {
+            "info.bicisampa": {
+              "usage": ["background"]
+            }
+          }
+        },
+        "via": {
+          "$value": "{ref.color.stone.600}",
+          "$description": "Pins de parada.",
+          "$extensions": {
+            "info.bicisampa": {
+              "usage": ["background"]
+            }
+          }
+        },
+        "to": {
+          "$value": "{ref.color.red.700}",
+          "$description": "Pin B (destino).",
+          "$extensions": {
+            "info.bicisampa": {
+              "usage": ["background"]
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "$description": "Cores do app fora da página: barra do navegador e tela de abertura do PWA. index.html e manifest.webmanifest não leem CSS: o build escreve neles estes valores, e o teste confere.",
+  "brand": {
+    "$type": "color",
+    "theme": {
+      "$value": "{ref.color.teal.700}",
+      "$description": "theme-color: barra do navegador e do app instalado.",
+      "$extensions": {
+        "info.bicisampa": {
+          "usage": ["theme-color"]
+        }
+      }
+    },
+    "splash": {
+      "$value": "{ref.color.brown.900}",
+      "$description": "Fundo da tela de abertura e do ícone maskable.",
+      "$extensions": {
+        "info.bicisampa": {
+          "usage": ["background"]
+        }
+      }
+    }
+  }
+}

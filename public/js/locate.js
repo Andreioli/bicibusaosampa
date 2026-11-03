@@ -5,6 +5,7 @@
 // appears when the user taps the button or asks the planner for "my location".
 
 import { toast } from './ui.js';
+import { tokens } from './tokens.js';
 
 export const DEFAULT_VIEW = { center: [-23.5496, -46.6396], zoom: 16 }; // Terminal Bandeira
 const ZOOM = 16;
@@ -43,9 +44,9 @@ export function initLocate(map) {
     button.classList.remove('busy');
     last = e.latlng;
     if (ring) ring.setLatLng(e.latlng).setRadius(e.accuracy);
-    else ring = L.circle(e.latlng, { pane: 'me', radius: e.accuracy, color: '#2563eb', weight: 1, opacity: 0.5, fillOpacity: 0.1, interactive: false }).addTo(map);
+    else ring = L.circle(e.latlng, { pane: 'me', radius: e.accuracy, color: tokens.map.location.accent, weight: 1, opacity: 0.5, fillOpacity: 0.1, interactive: false }).addTo(map);
     if (dot) dot.setLatLng(e.latlng);
-    else dot = L.circleMarker(e.latlng, { pane: 'me', radius: 8, color: '#fff', weight: 3, fillColor: '#2563eb', fillOpacity: 1, interactive: false }).addTo(map);
+    else dot = L.circleMarker(e.latlng, { pane: 'me', radius: 8, color: tokens.map.icon.on, weight: 3, fillColor: tokens.map.location.accent, fillOpacity: 1, interactive: false }).addTo(map);
     if (!centred) {
       centred = true;
       map.setView(e.latlng, Math.max(map.getZoom(), ZOOM));

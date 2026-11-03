@@ -1,0 +1,119 @@
+{
+  "$description": "Interface no modo claro. Cada token aqui tem o par em dark.tokens.json, com o mesmo nome.",
+  "ui": {
+    "$type": "color",
+    "surface": {
+      "page": {
+        "$value": "{ref.color.white}",
+        "$description": "Fundo da página e dos campos.",
+        "$extensions": {
+          "info.bicisampa": {
+            "usage": ["background"],
+            "avoid": ["texto", "ícones do mapa"]
+          }
+        }
+      },
+      "panel": {
+        "$value": "{ref.color.alpha.white-97}",
+        "$description": "Painéis e botões sobre o mapa; quase opaco, para o mapa aparecer de leve por trás.",
+        "$extensions": {
+          "info.bicisampa": {
+            "usage": ["background"],
+            "avoid": ["texto"]
+          }
+        }
+      }
+    },
+    "content": {
+      "primary": {
+        "$value": "{ref.color.stone.900}",
+        "$description": "Texto principal.",
+        "$extensions": {
+          "info.bicisampa": {
+            "usage": ["text", "icon"],
+            "avoid": ["fundos"],
+            "contrast": [
+              {
+                "against": "ui.surface.page",
+                "min": 4.5
+              },
+              {
+                "against": "ui.surface.panel",
+                "min": 4.5
+              }
+            ]
+          }
+        }
+      },
+      "secondary": {
+        "$value": "{ref.color.stone.600}",
+        "$description": "Texto de apoio: títulos de seção, horários, detalhes.",
+        "$extensions": {
+          "info.bicisampa": {
+            "usage": ["text", "icon"],
+            "avoid": ["fundos", "o texto que precisa ser lido primeiro"],
+            "contrast": [
+              {
+                "against": "ui.surface.page",
+                "min": 4.5
+              },
+              {
+                "against": "ui.surface.panel",
+                "min": 4.5
+              }
+            ]
+          }
+        }
+      }
+    },
+    "border": {
+      "default": {
+        "$value": "{ref.color.stone.200}",
+        "$description": "Bordas de painéis, campos e separadores de lista.",
+        "$extensions": {
+          "info.bicisampa": {
+            "usage": ["border"],
+            "avoid": ["texto"]
+          }
+        }
+      }
+    },
+    "accent": {
+      "default": {
+        "$value": "{ref.color.teal.700}",
+        "$description": "Ação e seleção: botão ativo, foco, links, opção escolhida.",
+        "$extensions": {
+          "info.bicisampa": {
+            "usage": ["background", "border", "text", "outline"],
+            "avoid": ["status de bici (use map.status.*)", "ícones do mapa"],
+            "contrast": [
+              {
+                "against": "ui.surface.page",
+                "min": 4.5
+              },
+              {
+                "against": "ui.surface.panel",
+                "min": 4.5
+              }
+            ]
+          }
+        }
+      },
+      "on": {
+        "$value": "{ref.color.white}",
+        "$description": "Texto sobre o destaque.",
+        "$extensions": {
+          "info.bicisampa": {
+            "usage": ["text", "icon"],
+            "contrast": [
+              {
+                "against": "ui.accent.default",
+                "min": 4.5
+              }
+            ]
+          }
+        }
+      }
+    }
+  }
+}

@@ -20,11 +20,11 @@ const DAY = 86400000;
 const DEV = VERSION === 'dev';
 
 const SHELL = [
-  '/', '/style.css', '/manifest.webmanifest',
+  '/', '/tokens.css', '/style.css', '/manifest.webmanifest',
   '/icons/icon-32.png', '/icons/icon-192.png', '/icons/metro.svg', '/icons/cptm.svg',
   '/js/app.js', '/js/geocode.js', '/js/heading.js', '/js/live-trips.js', '/js/locate.js',
   '/js/offset.js', '/js/parking.js', '/js/planner.js', '/js/planner-worker.js', '/js/raptor.js',
-  '/js/rail.js', '/js/schedule.js', '/js/streets.js', '/js/time.js', '/js/ui.js',
+  '/js/rail.js', '/js/schedule.js', '/js/streets.js', '/js/time.js', '/js/tokens.js', '/js/ui.js',
   '/vendor/leaflet-rotate/leaflet-rotate.js',
   '/data/rail-lines.json', '/data/bike-buses.json', '/data/rail.geojson', '/data/bus-routes.geojson',
   '/data/emtu-seletivo.json', '/data/emtu-routes.geojson',

@@ -1,0 +1,276 @@
+{
+  "$description": "Paleta (camada ref). Nomes e valores da escala do Tailwind, sem o Tailwind. Só os tokens de papel (ui, map, brand) leem daqui; CSS e JS nunca usam ref direto.",
+  "ref": {
+    "color": {
+      "$type": "color",
+      "white": {
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [1, 1, 1],
+          "hex": "#ffffff"
+        }
+      },
+      "black": {
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [0, 0, 0],
+          "hex": "#000000"
+        }
+      },
+      "stone": {
+        "100": {
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [0.9608, 0.9608, 0.9569],
+            "hex": "#f5f5f4"
+          }
+        },
+        "200": {
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [0.9059, 0.898, 0.8941],
+            "hex": "#e7e5e4"
+          }
+        },
+        "400": {
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [0.6588, 0.6353, 0.6196],
+            "hex": "#a8a29e"
+          }
+        },
+        "500": {
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [0.4706, 0.4431, 0.4235],
+            "hex": "#78716c"
+          }
+        },
+        "600": {
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [0.3412, 0.3255, 0.3059],
+            "hex": "#57534e"
+          }
+        },
+        "800": {
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [0.1608, 0.1451, 0.1412],
+            "hex": "#292524"
+          }
+        },
+        "900": {
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [0.1098, 0.098, 0.0902],
+            "hex": "#1c1917"
+          }
+        },
+        "950": {
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [0.0471, 0.0392, 0.0353],
+            "hex": "#0c0a09"
+          }
+        }
+      },
+      "green": {
+        "600": {
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [0.0863, 0.6392, 0.2902],
+            "hex": "#16a34a"
+          }
+        }
+      },
+      "yellow": {
+        "500": {
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [0.9176, 0.702, 0.0314],
+            "hex": "#eab308"
+          }
+        }
+      },
+      "amber": {
+        "200": {
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [0.9922, 0.902, 0.5412],
+            "hex": "#fde68a"
+          }
+        }
+      },
+      "orange": {
+        "500": {
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [0.9765, 0.451, 0.0863],
+            "hex": "#f97316"
+          }
+        }
+      },
+      "red": {
+        "600": {
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [0.8627, 0.149, 0.149],
+            "hex": "#dc2626"
+          }
+        },
+        "700": {
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [0.7255, 0.1098, 0.1098],
+            "hex": "#b91c1c"
+          }
+        }
+      },
+      "pink": {
+        "600": {
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [0.8588, 0.1529, 0.4667],
+            "hex": "#db2777"
+          }
+        }
+      },
+      "purple": {
+        "600": {
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [0.5765, 0.2, 0.9176],
+            "hex": "#9333ea"
+          }
+        }
+      },
+      "blue": {
+        "600": {
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [0.1451, 0.3882, 0.9216],
+            "hex": "#2563eb"
+          }
+        }
+      },
+      "teal": {
+        "400": {
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [0.1765, 0.8314, 0.749],
+            "hex": "#2dd4bf"
+          }
+        },
+        "700": {
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [0.0588, 0.4627, 0.4314],
+            "hex": "#0f766e"
+          }
+        },
+        "950": {
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [0.0157, 0.1843, 0.1804],
+            "hex": "#042f2e"
+          }
+        }
+      },
+      "cyan": {
+        "700": {
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [0.0549, 0.4549, 0.5647],
+            "hex": "#0e7490"
+          }
+        }
+      },
+      "brown": {
+        "900": {
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [0.2392, 0.1686, 0.1216],
+            "hex": "#3d2b1f"
+          },
+          "$description": "Fora da escala Tailwind: o marrom-escuro do ícone do app."
+        }
+      },
+      "night": {
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [0.0784, 0.0941, 0.1176],
+          "hex": "#14181e"
+        },
+        "$description": "Fora da escala Tailwind: o quase-preto azulado do toast."
+      },
+      "alpha": {
+        "$description": "Cores translúcidas. O DTCG não tem modificador de opacidade, então cada uma é uma primitiva.",
+        "white-97": {
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [1, 1, 1],
+            "alpha": 0.97,
+            "hex": "#ffffff"
+          }
+        },
+        "stone-900-97": {
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [0.1098, 0.098, 0.0902],
+            "alpha": 0.97,
+            "hex": "#1c1917"
+          }
+        },
+        "night-94": {
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [0.0784, 0.0941, 0.1176],
+            "alpha": 0.94,
+            "hex": "#14181e"
+          }
+        },
+        "black-15": {
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [0, 0, 0],
+            "alpha": 0.15,
+            "hex": "#000000"
+          }
+        },
+        "black-18": {
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [0, 0, 0],
+            "alpha": 0.18,
+            "hex": "#000000"
+          }
+        },
+        "black-35": {
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [0, 0, 0],
+            "alpha": 0.35,
+            "hex": "#000000"
+          }
+        },
+        "black-45": {
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [0, 0, 0],
+            "alpha": 0.45,
+            "hex": "#000000"
+          }
+        },
+        "black-50": {
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [0, 0, 0],
+            "alpha": 0.5,
+            "hex": "#000000"
+          }
+        }
+      }
+    }
+  }
+}
