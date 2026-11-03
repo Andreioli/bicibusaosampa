@@ -956,6 +956,8 @@ export function initPlanner({ map, rotatingPane, locate, sheetInsets, railLines,
   // fades out. When the view changes, labels glide along the line to their new spot
   // and size instead of jumping. Tight corners may squeeze the letters.
   const MIN_LABEL_PX = 7;
+  // Full sizes of the labels (map.label.size.* tokens; style.css uses the same ones).
+  const LABEL_PX = Object.fromEntries(Object.entries(tokens.map.label.size).map(([k, v]) => [k, parseFloat(v)]));
   const GLIDE_MS = 300;
   const SAMPLE_PX = 6;
   const MARGIN_PX = 24; // kept free at each end of a label, so no letter runs off its guide
@@ -1039,7 +1041,7 @@ export function initPlanner({ map, rotatingPane, locate, sheetInsets, railLines,
       const total = guide.getTotalLength?.() ?? 0;
       const stretch = total ? visibleStretch(guide, total, rect) : null;
       for (const t of texts) {
-        const base = t.classList.contains('total') ? 14 : t.classList.contains('line') ? 13.5 : 12.5;
+        const base = LABEL_PX[t.classList.contains('total') ? 'total' : t.classList.contains('line') ? 'line' : 'leg'];
         if (!stretch) { t.style.opacity = '0'; continue; }
         // Text length at the base size (getComputedTextLength scales with the font).
         const now = parseFloat(t.style.fontSize) || base;

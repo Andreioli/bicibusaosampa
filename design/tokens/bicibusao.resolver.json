@@ -4,21 +4,62 @@
   "sets": {
     "base": {
       "sources": [
-        { "$ref": "ref.tokens.json" },
-        { "$ref": "ui.tokens.json" },
-        { "$ref": "map.tokens.json" },
-        { "$ref": "brand.tokens.json" }
+        {
+          "$ref": "ref.tokens.json"
+        },
+        {
+          "$ref": "ui.tokens.json"
+        },
+        {
+          "$ref": "map.tokens.json"
+        },
+        {
+          "$ref": "brand.tokens.json"
+        }
       ]
     }
   },
   "modifiers": {
     "scheme": {
       "contexts": {
-        "light": [{ "$ref": "themes/light.tokens.json" }],
-        "dark": [{ "$ref": "themes/dark.tokens.json" }]
+        "light": [
+          {
+            "$ref": "themes/light.tokens.json"
+          }
+        ],
+        "dark": [
+          {
+            "$ref": "themes/dark.tokens.json"
+          }
+        ]
       },
       "default": "light"
+    },
+    "motion": {
+      "contexts": {
+        "standard": [
+          {
+            "$ref": "motion/standard.tokens.json"
+          }
+        ],
+        "reduced": [
+          {
+            "$ref": "motion/reduced.tokens.json"
+          }
+        ]
+      },
+      "default": "standard"
     }
   },
-  "resolutionOrder": [{ "$ref": "#/sets/base" }, { "$ref": "#/modifiers/scheme" }]
+  "resolutionOrder": [
+    {
+      "$ref": "#/sets/base"
+    },
+    {
+      "$ref": "#/modifiers/scheme"
+    },
+    {
+      "$ref": "#/modifiers/motion"
+    }
+  ]
 }

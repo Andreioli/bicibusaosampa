@@ -4,7 +4,8 @@ Como o visual do app é organizado, como mudar alguma coisa sem quebrar o resto 
 que escolhemos assim. Vale para quem desenha, para quem programa e para a IA que
 trabalha no repositório: o CLAUDE.md aponta para cá.
 
-O resumo: **toda cor, sombra e fonte do app é um token**. Os tokens ficam em JSON no
+O resumo: **toda cor, espaço, raio, estilo de texto, duração de animação e camada do app
+é um token**. Os tokens ficam em JSON no
 padrão [DTCG 2025.10](https://www.designtokens.org/tr/2025.10/) do W3C, em
 `design/tokens/`. Um script sem dependências gera deles o CSS e o JS que o site carrega.
 O site continua sem build no deploy: os arquivos gerados são commitados, como os dados
@@ -13,16 +14,18 @@ em `public/data/`.
 ```
 design/tokens/                 a fonte (você edita aqui)
   ref.tokens.json              a paleta
-  ui.tokens.json               interface que não muda entre claro e escuro
-  map.tokens.json              a simbologia do mapa
+  ui.tokens.json               interface: espaço, tipo, raio, tamanho, camadas, sombras
+  map.tokens.json              a simbologia do mapa e os rótulos da rota
   brand.tokens.json            cores do app fora da página (PWA)
-  themes/light.tokens.json     interface no modo claro, com descrições e metadados
-  themes/dark.tokens.json      interface no modo escuro, só valores
-  bicibusao.resolver.json      como os arquivos se combinam em claro e escuro
+  themes/light.tokens.json     cores da interface no modo claro, com descrições e metadados
+  themes/dark.tokens.json      cores da interface no modo escuro, só valores
+  motion/standard.tokens.json  durações de animação, com descrições e metadados
+  motion/reduced.tokens.json   durações com "reduzir movimento" ligado, só valores
+  bicibusao.resolver.json      como os arquivos se combinam (esquema de cor, movimento)
         │
         ▼  npm run build:tokens   (scripts/build-tokens.mjs)
         │
-  public/tokens.css            variáveis CSS, claro e escuro       (gerado)
+  public/tokens.css            variáveis CSS, com cada modo         (gerado)
   public/js/tokens.js          os mesmos valores para JavaScript   (gerado)
   DESIGN.md, tabelas abaixo    a lista de tokens deste documento   (gerado)
 ```
@@ -67,18 +70,60 @@ hífen dentro das palavras. Exemplos: `ui.content.secondary`, `map.bus.offroute.
 - chave em JavaScript: camelCase → `tokens.map.bus.offroute.wait`, `tokens.map.plan.busBike`
 
 Na paleta: `ref.color.<matiz>.<passo>` (`ref.color.stone.900`). Translúcidas ficam em
-`ref.color.alpha.<cor>-<opacidade>` (`ref.color.alpha.black-18`).
+`ref.color.alpha.<cor>-<opacidade>` (`ref.color.alpha.black-18`). As escalas são nomeadas
+pelo valor: `ref.space.12` = 12 px, `ref.radius.9999`, `ref.duration.200` = 200 ms,
+`ref.font.size.14`.
 
-### Claro e escuro
+### As escalas
+
+Tudo cai numa **grade de 4 px**, com 2 px como única exceção (para encostar coisas
+pequenas). O teste recusa um espaço ou tamanho fora dela. A paleta só tem os passos que
+algum papel usa; zero não é token (`0` vale direto no CSS).
+
+| Escala | Paleta (`ref`) | Papéis |
+|---|---|---|
+| Espaço | 2, 4, 8, 12, 16, 24 | `ui.space.inset.*` (por dentro: padding) e `ui.space.gap.*` (entre coisas: gap e margin), de `2xs` a `xl`, com os mesmos passos; `ui.space.edge` (distância até a borda da tela) |
+| Texto | tamanhos 10–20, alturas de linha, pesos, espaçamento entre letras | `ui.type.*`: `title`, `heading`, `body` (16 px), `body-sm`, `label`, `caption`, `overline`; `ui.font.weight.*`; `map.label.*` para o texto sobre o mapa |
+| Raio | 4, 8, 12, 16, 9999 | `ui.radius.small`, `item`, `control`, `container`, `full` |
+| Tamanho | 4, 16–44, 280, 360 | `ui.size.touch` (44), `ui.size.icon.*`, `ui.size.control.*`, `ui.size.pin`, `ui.size.panel.*` |
+| Movimento | durações 0–1000 ms, curvas | `ui.motion.duration.fast/base/slow/loop`, `ui.motion.easing.*` |
+| Camadas | — | `ui.layer.sheet`, `map-controls`, `toast`, `banner` |
+
+Um estilo de texto (`ui.type.*`) é um token composto (`$type: typography`): tamanho, altura
+de linha, peso, família e espaçamento entre letras juntos. No CSS ele vira duas variáveis,
+porque `letter-spacing` não cabe no atalho `font`:
+
+```css
+h2 {
+  font: var(--ui-type-overline);
+  letter-spacing: var(--ui-type-overline-tracking);
+}
+```
+
+`font` redefine tudo o que é de fonte. Um `font-variant-numeric` ou `font-weight` que
+complete o estilo vem **depois** dele.
+
+O texto do mapa tem escala própria (`map.label.*`). Ele é desenhado sobre linhas e lido
+de relance, e o JS lê esses tamanhos para encolher cada rótulo até caber no trecho.
+
+### Modos: claro e escuro, movimento reduzido
 
 O `bicibusao.resolver.json` segue o
 [Resolver](https://www.designtokens.org/tr/2025.10/resolver/) da spec. Ele junta os
-arquivos base e escolhe `themes/light` ou `themes/dark`. Cada token de tema existe nos dois
-arquivos com o mesmo nome. A descrição e os metadados ficam só no claro, para não
-divergirem, e o teste recusa um token que exista num arquivo e falte no outro.
+arquivos base e escolhe um contexto de cada modificador:
 
-No CSS gerado, o escuro é um bloco `@media (prefers-color-scheme: dark)` com só os
-tokens que mudam.
+| Modificador | Contextos | No CSS |
+|---|---|---|
+| `scheme` | `light` (padrão), `dark` | `@media (prefers-color-scheme: dark)` |
+| `motion` | `standard` (padrão), `reduced` | `@media (prefers-reduced-motion: reduce)`: as durações vão a 0 |
+
+Cada token de um modificador existe em todos os contextos, com o mesmo nome. A descrição e
+os metadados ficam só no contexto padrão, para não divergirem, e o teste recusa um token
+que exista num arquivo e falte no outro. Um token muda com um modificador só.
+
+No CSS gerado, cada contexto que não é o padrão vira um bloco `@media` com só os tokens que
+mudam. Como as durações vêm de token, quem pede "reduzir movimento" no aparelho deixa de
+ver todas as transições, não só as que alguém lembrou de tratar.
 
 ### Metadados
 
@@ -91,7 +136,7 @@ ferramentas DTCG ignoram sem erro:
 
 | Campo | Para quê |
 |---|---|
-| `usage` | Onde usar, de uma lista fixa: `text`, `icon`, `background`, `border`, `outline`, `line`, `fill`, `shadow`, `text-shadow`, `font`, `width`, `height`, `theme-color`. O teste recusa outro termo. |
+| `usage` | Onde usar, de uma lista fixa: `text`, `icon`, `background`, `border`, `outline`, `line`, `fill`, `shadow`, `text-shadow`, `font`, `theme-color`, `padding`, `gap`, `margin`, `position`, `width`, `height`, `radius`, `z-index`, `transition`, `animation`. O teste recusa outro termo. |
 | `avoid` | Onde não usar, em frases curtas em português. |
 | `contrast` | Pares que precisam de contraste mínimo: `[{ "against": "ui.surface.page", "min": 4.5 }]`. O teste mede cada par nos dois esquemas. |
 | `departure` | Dentro de um par de `contrast`: uma exceção conhecida, com `rule`, `reason` e `since`. Veja "Quando o contraste falha". |
@@ -123,7 +168,8 @@ já faz esse trabalho. Um token novo precisa de `$value` apontando para a paleta
 
 | Onde | Como |
 |---|---|
-| CSS | `color: var(--ui-content-secondary);` |
+| CSS | `color: var(--ui-content-secondary);` · `padding: var(--ui-space-inset-sm) var(--ui-space-inset-md);` · `font: var(--ui-type-label);` · `transition: opacity var(--ui-motion-duration-base) var(--ui-motion-easing-standard);` · negativo: `calc(var(--ui-space-gap-xs) * -1)` |
+| HTML gerado em JS (popups) | Classes do `style.css` (`<p class="meta">`). Estilo inline só para o que é calculado na hora: a cor de uma linha, um tamanho que depende do zoom. |
 | SVG gerado em JS, Leaflet, canvas | `import { tokens } from './tokens.js'` → `fill="${tokens.map.icon.ink}"`. Um nome errado (`tokens.map.icon.inkk`) faz o teste falhar. |
 | SVG no HTML | `style="fill: var(--map-compass-north)"`, como no CSS |
 | `index.html` `theme-color`, `manifest.webmanifest` | Esses arquivos não leem CSS: o build escreve neles o valor de `brand.*`. |
@@ -162,13 +208,20 @@ código ainda não segue.
   `public/js/`, o teste recusa `#hex`, `rgb()`, `hsl()`, `hwb()`, `lab()`, `lch()`,
   `oklab()`, `oklch()` e `color()`, e, no CSS, nomes de cor como `white`.
   **[automática]**
-- Sombras e a fonte também vêm de tokens. **[revisão]**: o teste não consegue
-  reconhecer uma sombra ou uma fonte escrita à mão.
-- A paleta (`ref`) nunca aponta para outro token. **[automática]**
+- Em `style.css`, `padding`, `margin`, `gap`, `border-radius`, `font`, `font-size`,
+  `font-weight`, `line-height`, `letter-spacing`, `transition`, `animation` e `z-index`
+  só aceitam tokens (`0`, porcentagens e palavras como `auto` estão liberados).
+  **[automática]**
+- Espaço e tamanho da paleta ficam na grade de 4 px, com 2 px como exceção. **[automática]**
+- Estilo inline no HTML gerado pelo JS só para `background`, `width`, `height`,
+  `transform` e `fill`: valores calculados na hora. O resto é classe. **[automática]**
+- Sombras vêm de tokens. **[revisão]**: o teste não reconhece uma sombra escrita à mão.
+- A paleta (`ref`) nunca aponta para outro token, e só guarda o que algum papel usa.
+  **[automática]**
 - Um papel aponta para a paleta, nunca para um valor cru. As exceções estão declaradas no
-  teste, cada uma com o motivo (hoje: `ui.size.touch`, `ui.font.family.base` e os
-  comprimentos das sombras, cuja cor ainda vem da paleta). Uma exceção que deixa de ser
-  usada também faz o teste falhar. **[automática]**
+  teste, cada uma com o motivo (hoje: os comprimentos das sombras, cuja cor vem da paleta,
+  e as camadas, que conversam com números do Leaflet). Uma exceção que deixa de ser usada
+  também faz o teste falhar. **[automática]**
 - O código nunca lê a paleta (`var(--ref-…)`), nunca lê uma variável CSS que não existe e
   nunca lê em JS um token que não existe. **[automática]**
 - Dois tokens não podem gerar o mesmo nome (`map.plan.bus-bike` e `map.plan.bus.bike`
@@ -183,7 +236,9 @@ código ainda não segue.
   o mesmo tom continuam separados se significam coisas diferentes. **[revisão]**
 - Os arquivos em `design/tokens/` usam só o formato DTCG padrão; o que é nosso fica em
   `$extensions["info.bicisampa"]`. **[revisão]**
-- Espaçamento, raios e tamanhos de texto também viram tokens, numa escala. **[meta]**
+- Larguras e alturas de peças pequenas (amostras da legenda, a alça da folha), larguras
+  de borda e de traço também viram tokens. **[meta]**: hoje só os tamanhos com papel
+  (área de toque, ícones, controles, painéis) são tokens.
 
 ### Mapa
 
@@ -212,14 +267,64 @@ Não edite à mão: o teste confere.
 | `ui.shadow.pin` | `0px 1px 3px rgb(0 0 0 / 0.45)` | Pins A/B/parada e o marcador de troca de modo. São poucos na tela, então a sombra não pesa. |
 | `ui.shadow.text-on-color` | `0px 0px 2px rgb(0 0 0 / 0.5)` | Sombra do texto dos badges de linha, para o branco ler sobre o amarelo e o laranja. |
 | `ui.font.family.base` | `system-ui, -apple-system, "Segoe UI", Roboto, sans-serif` | Fonte do sistema: zero download, e o texto fica com a cara do celular de quem usa. |
+| `ui.font.weight.regular` | `400` | Texto corrido. |
+| `ui.font.weight.strong` | `600` | Destaque dentro do texto: nomes de linha, rótulos, a opção escolhida. |
+| `ui.font.weight.bold` | `700` | Títulos, badges e o que precisa saltar. |
 | `ui.size.touch` | `44px` | Lado mínimo de tudo que se toca (Apple HIG: 44 pt). |
-| `ui.surface.page` | `#ffffff` · escuro `#0c0a09` | Fundo da página e dos campos. |
-| `ui.surface.panel` | `rgb(255 255 255 / 0.97)` · escuro `rgb(28 25 23 / 0.97)` | Painéis e botões sobre o mapa; quase opaco, para o mapa aparecer de leve por trás. |
-| `ui.content.primary` | `#1c1917` · escuro `#f5f5f4` | Texto principal. |
-| `ui.content.secondary` | `#57534e` · escuro `#a8a29e` | Texto de apoio: títulos de seção, horários, detalhes. |
-| `ui.border.default` | `#e7e5e4` · escuro `#292524` | Bordas de painéis, campos e separadores de lista. |
-| `ui.accent.default` | `#0f766e` · escuro `#2dd4bf` | Ação e seleção: botão ativo, foco, links, opção escolhida. |
-| `ui.accent.on` | `#ffffff` · escuro `#042f2e` | Texto sobre o destaque. |
+| `ui.size.control.md` | `40px` | Altura dos botões de zoom do mapa. |
+| `ui.size.control.sm` | `36px` | Botões secundários em pílula (Compartilhar, Desfazer): menores que a área de toque, mas sempre dentro de uma linha que tem 44 px. |
+| `ui.size.icon.sm` | `16px` | Ícones dentro de texto e listas. |
+| `ui.size.icon.md` | `20px` | Ícones de botão. |
+| `ui.size.icon.lg` | `24px` | Ícones de destaque, pins da lista e caixas de seleção. |
+| `ui.size.pin` | `32px` | Pins A/B/parada sobre o mapa. |
+| `ui.size.panel.md` | `360px` | Largura do menu em telas largas. |
+| `ui.size.panel.sm` | `280px` | Largura da folha de camadas em telas largas. |
+| `ui.size.grip` | `4px` | Espessura da alça de arrastar da folha no celular. |
+| `ui.space.inset.2xs` | `2px` | Espaço interno 2xs. |
+| `ui.space.inset.xs` | `4px` | Espaço interno xs. |
+| `ui.space.inset.sm` | `8px` | Espaço interno sm. |
+| `ui.space.inset.md` | `12px` | Espaço interno md. |
+| `ui.space.inset.lg` | `16px` | Espaço interno lg. |
+| `ui.space.inset.xl` | `24px` | Espaço interno xl. |
+| `ui.space.gap.2xs` | `2px` | Espaço entre itens 2xs. |
+| `ui.space.gap.xs` | `4px` | Espaço entre itens xs. |
+| `ui.space.gap.sm` | `8px` | Espaço entre itens sm. |
+| `ui.space.gap.md` | `12px` | Espaço entre itens md. |
+| `ui.space.gap.lg` | `16px` | Espaço entre itens lg. |
+| `ui.space.gap.xl` | `24px` | Espaço entre itens xl. |
+| `ui.space.edge` | `12px` | Distância dos controles e painéis até a borda da tela (somada à área segura do aparelho). |
+| `ui.radius.small` | `4px` | Peças pequenas: badges de linha, amostras da legenda, ícones de estação. |
+| `ui.radius.item` | `8px` | Linhas de lista selecionáveis e a opção de rota escolhida. |
+| `ui.radius.control` | `12px` | Botões, campos e os botões sobre o mapa. |
+| `ui.radius.container` | `16px` | Painéis e folhas. |
+| `ui.radius.full` | `9999px` | Pílulas e círculos (pins, bolinhas de status, toast). |
+| `ui.type.title` | `700 18px/1.25 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif` | O nome do app no topo do menu. |
+| `ui.type.heading` | `700 16px/1.25 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif` | Títulos de popup e de trecho da rota. |
+| `ui.type.body` | `400 16px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif` | Texto corrido e campos (16 px: o iPhone não dá zoom ao tocar no campo). |
+| `ui.type.body-sm` | `400 14px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif` | Texto de apoio: detalhes, notas, conteúdo dos popups. |
+| `ui.type.label` | `600 14px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif` | Botões, opções e rótulos curtos. |
+| `ui.type.caption` | `400 12px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif` | Créditos, fonte dos dados, legendas miúdas. |
+| `ui.type.overline` | `600 12px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif` | Títulos de seção, em caixa alta. |
+| `ui.type.symbol` | `700 20px/1 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif` | Glifos de texto nos botões do mapa (+, −, ≡). Provisório: sai quando os ícones chegarem. |
+| `ui.type.symbol-sm` | `400 18px/1.25 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif` | Emojis nos botões do planejador, um pouco apertados para caberem lado a lado. Provisório: sai quando os ícones chegarem. |
+| `ui.layer.sheet` | `1000` | Menu e folha de camadas. |
+| `ui.layer.map-controls` | `1001` | Botões sobre o mapa, acima das folhas. |
+| `ui.layer.toast` | `1200` | O toast. |
+| `ui.layer.banner` | `1201` | O aviso de nova versão, acima de tudo. |
+| `ui.motion.easing.standard` | `cubic-bezier(0.25, 0.1, 0.25, 1)` | Quase todas as transições. |
+| `ui.motion.easing.linear` | `cubic-bezier(0, 0, 1, 1)` | Movimento que acompanha um gesto contínuo. |
+| `ui.motion.easing.pulse` | `cubic-bezier(0.42, 0, 0.58, 1)` | Animações em loop, que vão e voltam. |
+| `ui.surface.page` | `#ffffff` · dark `#0c0a09` | Fundo da página e dos campos. |
+| `ui.surface.panel` | `rgb(255 255 255 / 0.97)` · dark `rgb(28 25 23 / 0.97)` | Painéis e botões sobre o mapa; quase opaco, para o mapa aparecer de leve por trás. |
+| `ui.content.primary` | `#1c1917` · dark `#f5f5f4` | Texto principal. |
+| `ui.content.secondary` | `#57534e` · dark `#a8a29e` | Texto de apoio: títulos de seção, horários, detalhes. |
+| `ui.border.default` | `#e7e5e4` · dark `#292524` | Bordas de painéis, campos e separadores de lista. |
+| `ui.accent.default` | `#0f766e` · dark `#2dd4bf` | Ação e seleção: botão ativo, foco, links, opção escolhida. |
+| `ui.accent.on` | `#ffffff` · dark `#042f2e` | Texto sobre o destaque. |
+| `ui.motion.duration.fast` | `100ms` · reduced `0ms` | Seguir um gesto (a bússola girando com o mapa). |
+| `ui.motion.duration.base` | `200ms` · reduced `0ms` | Aparecer e sumir: toast, rótulos, camadas esmaecendo. |
+| `ui.motion.duration.slow` | `400ms` · reduced `0ms` | Deslocar no mapa (o ônibus virando para o sentido da viagem). |
+| `ui.motion.duration.loop` | `1000ms` · reduced `0ms` | Ciclo de uma animação contínua (o botão de localização piscando enquanto procura). |
 <!-- /tokens:ui -->
 
 ### Mapa (`map`)
@@ -257,6 +362,13 @@ Não edite à mão: o teste confere.
 | `map.plan.pin.from` | `#0f766e` | Pin A (origem). |
 | `map.plan.pin.via` | `#57534e` | Pins de parada. |
 | `map.plan.pin.to` | `#b91c1c` | Pin B (destino). |
+| `map.label.size.leg` | `12px` | Tempo, kcal e distância de um trecho. |
+| `map.label.size.line` | `14px` | Código da linha num trecho de ônibus ou trem. |
+| `map.label.size.total` | `14px` | O rótulo "Total" da viagem. |
+| `map.label.weight.leg` | `600` | Rótulos de trecho. |
+| `map.label.weight.strong` | `800` | Código da linha e o total: precisam ler mesmo pequenos. |
+| `map.label.tracking.leg` | `0.5px` | Letras um pouco abertas: o contorno grosso fecha o espaço entre elas. |
+| `map.label.badge` | `700 10px/1 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif` | Número 1, 2… nos ícones de trecho quando há mais de uma condução do mesmo tipo. |
 <!-- /tokens:map -->
 
 ### App (`brand`)
@@ -392,3 +504,66 @@ Ao medir os pares, três problemas que já existiam apareceram:
 Nenhum foi corrigido nesta etapa, porque corrigir muda o visual e as cores são decisões do
 mantenedor. Ficaram registrados como `departure` nos tokens, com o motivo, e o teste vai
 avisar quando deixarem de ser necessários.
+
+### 10. Grade de 4 px, com 2 px de exceção (2026-11-03)
+
+**Contexto.** O CSS tinha 13 espaçamentos diferentes (1, 2, 3, 4, 5, 6, 8, 10, 11, 12, 14,
+16, 18 e 32 px), 10 raios e 11 tamanhos de texto: o acaso de muitas iterações rápidas.
+
+**Decisão.** Espaço e tamanho numa grade de 4 px; 2 px é a única exceção, para encostar
+peças pequenas. Na migração, o **padding arredondou para cima** (6 → 8, 10 → 12, 14 → 16),
+para não encolher área de toque, e o **espaço entre coisas arredondou para baixo** (6 → 4,
+10 → 8, 14 → 12), para não espalhar listas no celular.
+
+**Por quê.** Com poucos passos, duas pessoas (ou uma IA) escolhem o mesmo valor sem
+combinar, e o olho lê ritmo onde antes lia ruído. Uma grade é também o que os sistemas
+de Android e iOS já usam (dp e pt em múltiplos de 4), então a escala viaja para os apps.
+
+### 11. Texto base de 16 px (2026-11-03)
+
+**Decisão.** `ui.type.body` passou de 15 para 16 px, e o texto de apoio de 13 para 14.
+
+**Por quê.** Os campos já precisavam de 16 px para o iPhone não dar zoom ao tocar neles;
+agora o texto corrido acompanha. O app é usado na rua, muitas vezes no sol e em
+movimento: um ponto a mais pesa a favor da leitura. A escala ficou em passos de 2 px
+(10, 12, 14, 16, 18, 20).
+
+### 12. Estilos de texto compostos, e uma escala só para o mapa (2026-11-03)
+
+**Decisão.** Cada estilo de texto é um token `typography` (tamanho, altura, peso, família,
+espaçamento juntos). No CSS, `font: var(--ui-type-x)` mais `letter-spacing` à parte. O
+texto sobre o mapa tem tokens próprios em `map.label.*`.
+
+**Por quê.** Tamanho e peso soltos se recombinam ao acaso (um 13 px em negrito aqui, um
+14 px seminegrito ali). Um estilo composto é uma escolha só. Os rótulos do mapa respondem a
+outra coisa: são desenhados sobre linhas, com contorno grosso, e o JS encolhe cada um até
+caber no trecho, lendo o tamanho do token.
+
+**Fora.** Gerar classes CSS por estilo (`.type-body`). Seria um segundo jeito de aplicar a
+mesma coisa; uma variável no `font` basta.
+
+### 13. Movimento reduzido como modo do token (2026-11-03)
+
+**Contexto.** Antes, só a animação do botão de localização respeitava "reduzir
+movimento", com um `@media` escrito à mão. As transições (fades, a seta do ônibus
+virando) não.
+
+**Decisão.** As durações são tokens com um segundo modificador no resolver, `motion`:
+no contexto `reduced` elas vão a 0, e o CSS gerado as troca com
+`@media (prefers-reduced-motion: reduce)`.
+
+**Por quê.** Acessibilidade de graça para toda transição nova, sem ninguém lembrar.
+
+### 14. Sem modos de densidade nem de tamanho de tela (2026-11-03)
+
+O Raw DS, em que este método se inspira, tem modos de densidade (compacto, confortável) e
+de viewport. Aqui não: o app tem uma densidade e um layout de celular que vira cartão em
+tela larga. Os modos seriam peso sem uso. Se um dia um tablet pedir outro ritmo, o
+resolver ganha um modificador, como `motion`.
+
+### 15. Popups com classes, não estilo inline (2026-11-03)
+
+Os popups eram montados com `style="margin:6px 0 0"` em 23 lugares do `app.js`, fora do
+alcance dos tokens. Viraram classes (`.leaflet-popup-content p`, `.meta`, `.source`…), e
+o teste só deixa inline o que é calculado na hora. Os popups passaram a usar a fonte do
+sistema, como o resto do app (antes herdavam a Helvetica do CSS do Leaflet).

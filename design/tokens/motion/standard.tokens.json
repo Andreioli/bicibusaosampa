@@ -1,0 +1,46 @@
+{
+  "$description": "Movimento padrão. Cada token aqui tem o par em reduced.tokens.json, com o mesmo nome.",
+  "ui": {
+    "motion": {
+      "duration": {
+        "$type": "duration",
+        "fast": {
+          "$value": "{ref.duration.100}",
+          "$description": "Seguir um gesto (a bússola girando com o mapa).",
+          "$extensions": {
+            "info.bicisampa": {
+              "usage": ["transition"]
+            }
+          }
+        },
+        "base": {
+          "$value": "{ref.duration.200}",
+          "$description": "Aparecer e sumir: toast, rótulos, camadas esmaecendo.",
+          "$extensions": {
+            "info.bicisampa": {
+              "usage": ["transition"]
+            }
+          }
+        },
+        "slow": {
+          "$value": "{ref.duration.400}",
+          "$description": "Deslocar no mapa (o ônibus virando para o sentido da viagem).",
+          "$extensions": {
+            "info.bicisampa": {
+              "usage": ["transition"]
+            }
+          }
+        },
+        "loop": {
+          "$value": "{ref.duration.1000}",
+          "$description": "Ciclo de uma animação contínua (o botão de localização piscando enquanto procura).",
+          "$extensions": {
+            "info.bicisampa": {
+              "usage": ["animation"]
+            }
+          }
+        }
+      }
+    }
+  }
+}

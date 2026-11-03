@@ -309,16 +309,16 @@ function badge(line) {
 
 function lineRow(line) {
   const s = railStatus(line);
-  return `<p style="margin:4px 0">${badge(line)} <span class="dot ${s.status}" style="vertical-align:-1px"></span> ${esc(s.detail)}</p>`;
+  return `<p class="row">${badge(line)} <span class="dot inline ${s.status}"></span> ${esc(s.detail)}</p>`;
 }
 
 function linePopup(line) {
   const s = railStatus(line);
   return `<h3>${badge(line)} ${esc(line.name)}</h3>
-    <p style="margin:0">${esc(line.operator)}</p>
-    <p style="margin:6px 0 0"><span class="dot ${s.status}" style="vertical-align:-1px"></span> <b>${STATUS_LABELS[s.status]}</b><br>${esc(s.detail)}</p>
-    ${s.live ? `<p style="margin:6px 0 0">⚠️ ${esc(s.live)}</p>` : ''}
-    ${s.note ? `<p style="margin:6px 0 0;color:var(--ui-content-secondary)">${esc(s.note)}</p>` : ''}`;
+    <p class="first">${esc(line.operator)}</p>
+    <p><span class="dot inline ${s.status}"></span> <b>${STATUS_LABELS[s.status]}</b><br>${esc(s.detail)}</p>
+    ${s.live ? `<p>⚠️ ${esc(s.live)}</p>` : ''}
+    ${s.note ? `<p class="meta">${esc(s.note)}</p>` : ''}`;
 }
 
 function renderRail() {
@@ -516,13 +516,13 @@ function busStopPopup({ name, lines }) {
   const rows = codes.map((code) => {
     const line = busLineByCode.get(code);
     const n = state.buses.filter((b) => b.line === code).length;
-    return `<p style="margin:4px 0">${busBadge(code)} ${esc(line?.name ?? '')}${n ? ` · ${n} ${isEmtu(line) ? 'ao vivo' : 'com suporte agora'}` : ''}</p>`;
+    return `<p class="row">${busBadge(code)} ${esc(line?.name ?? '')}${n ? ` · ${n} ${isEmtu(line) ? 'ao vivo' : 'com suporte agora'}` : ''}</p>`;
   });
   const emtu = codes.some((c) => isEmtu(busLineByCode.get(c)));
   const sptrans = codes.some((c) => !isEmtu(busLineByCode.get(c)));
   return `<h3>Ponto: ${esc(name)}</h3>${rows.join('')}
-    ${sptrans ? `<p style="margin:6px 0 0"><span class="dot ${s.status}" style="vertical-align:-1px"></span> ${esc(s.detail)}</p>` : ''}
-    ${emtu ? `<p style="margin:6px 0 0">${esc(emtuConfig.rules.summary)}</p>` : ''}`;
+    ${sptrans ? `<p><span class="dot inline ${s.status}"></span> ${esc(s.detail)}</p>` : ''}
+    ${emtu ? `<p>${esc(emtuConfig.rules.summary)}</p>` : ''}`;
 }
 
 function busBadge(code) {
@@ -583,16 +583,16 @@ function busPopup(bus, s) {
   const seen = bus.at ? new Date(bus.at) : null;
   const emtu = isEmtu(bus);
   const rule = emtu
-    ? `<p style="margin:6px 0 0"><b>Seletivo EMTU</b>${line?.operator ? ` · ${esc(line.operator)}` : ''}${line?.fare ? ` · ${fare(line.fare)}` : ''}<br>${esc(emtuConfig.rules.summary)}</p>`
-    : `<p style="margin:6px 0 0"><span class="dot ${s.status}" style="vertical-align:-1px"></span> <b>${STATUS_LABELS[s.status]}</b><br>${esc(s.detail)}</p>`;
+    ? `<p><b>Seletivo EMTU</b>${line?.operator ? ` · ${esc(line.operator)}` : ''}${line?.fare ? ` · ${fare(line.fare)}` : ''}<br>${esc(emtuConfig.rules.summary)}</p>`
+    : `<p><span class="dot inline ${s.status}"></span> <b>${STATUS_LABELS[s.status]}</b><br>${esc(s.detail)}</p>`;
   return `<h3>Ônibus ${esc(bus.prefix)}</h3>
-    <p style="margin:0">${busBadge(bus.line)} → ${esc(bus.to)}</p>
-    ${line?.name ? `<p style="margin:2px 0 0;color:var(--ui-content-secondary)">${esc(line.name)}</p>` : ''}
-    ${bus.expected ? '' : '<p style="margin:6px 0 0">⚠️ Fora da rota habitual</p>'}
+    <p class="first">${busBadge(bus.line)} → ${esc(bus.to)}</p>
+    ${line?.name ? `<p class="sub meta">${esc(line.name)}</p>` : ''}
+    ${bus.expected ? '' : '<p>⚠️ Fora da rota habitual</p>'}
     ${rule}
-    ${bus.accessible ? '<p style="margin:6px 0 0">♿ Acessível</p>' : ''}
-    ${seen ? `<p style="margin:0;color:var(--ui-content-secondary)">Posição das ${describeTime(seen)}</p>` : ''}
-    ${line?.note ? `<p style="margin:6px 0 0">⚠️ ${esc(line.note)}</p>` : ''}`;
+    ${bus.accessible ? '<p>♿ Acessível</p>' : ''}
+    ${seen ? `<p class="first meta">Posição das ${describeTime(seen)}</p>` : ''}
+    ${line?.note ? `<p>⚠️ ${esc(line.note)}</p>` : ''}`;
 }
 
 function lineItem(code, n) {
@@ -636,7 +636,7 @@ function renderBuses() {
   const sptransLive = state.buses.filter((b) => !isEmtu(b)).length;
 
   $('#bus-count').textContent = state.busesLoaded && !state.busError ? `· ${sptransLive} ao vivo` : '';
-  $('#bus-status').innerHTML = `<span class="dot ${s.status}" style="vertical-align:-1px"></span> ${esc(s.detail)}`
+  $('#bus-status').innerHTML = `<span class="dot inline ${s.status}"></span> ${esc(s.detail)}`
     + (state.busError ? '<br><b>Sem posições ao vivo agora</b>' : '');
   $('#bus-unusual').hidden = !unusual.length;
   const offRoute = unusual.reduce((n, c) => n + (counts.get(c) ?? 0), 0);
@@ -796,10 +796,10 @@ function parkingPopup(p) {
     ? `<a href="https://www.openstreetmap.org/${esc(p.osm)}" target="_blank" rel="noopener">OpenStreetMap</a>`
     : 'GeoSampa (Prefeitura de SP)';
   return `<h3>${esc(p.name ?? (p.kind === 'bicicletario' ? 'Bicicletário' : 'Paraciclo'))}</h3>
-    ${facts.length ? `<p style="margin:0;color:var(--ui-content-secondary)">${esc(facts.join(' · '))}</p>` : ''}
-    <p style="margin:6px 0 0"><span class="dot" style="background:${PARKING_COLORS[p.access]};vertical-align:-1px"></span> <b>${ACCESS[p.access].label}</b><br>${esc(ACCESS[p.access].detail)}${p.biometric ? ' Entrada com biometria.' : ''}</p>
-    ${s.detail ? `<p style="margin:6px 0 0">${s.open === false ? '<span class="dot closed" style="vertical-align:-1px"></span> ' : ''}${esc(s.detail)}</p>` : ''}
-    <p style="margin:6px 0 0;font-size:12px;color:var(--ui-content-secondary)">Fonte: ${source}</p>`;
+    ${facts.length ? `<p class="first meta">${esc(facts.join(' · '))}</p>` : ''}
+    <p><span class="dot inline" style="background:${PARKING_COLORS[p.access]}"></span> <b>${ACCESS[p.access].label}</b><br>${esc(ACCESS[p.access].detail)}${p.biometric ? ' Entrada com biometria.' : ''}</p>
+    ${s.detail ? `<p>${s.open === false ? '<span class="dot inline closed"></span> ' : ''}${esc(s.detail)}</p>` : ''}
+    <p class="meta source">Fonte: ${source}</p>`;
 }
 
 const parkingMarkers = []; // [{ marker, props }]

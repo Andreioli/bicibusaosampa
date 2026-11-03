@@ -2,7 +2,6 @@
 
 :root {
   --ref-color-white: #ffffff;
-  --ref-color-black: #000000;
   --ref-color-stone-100: #f5f5f4;
   --ref-color-stone-200: #e7e5e4;
   --ref-color-stone-400: #a8a29e;
@@ -25,7 +24,6 @@
   --ref-color-teal-950: #042f2e;
   --ref-color-cyan-700: #0e7490;
   --ref-color-brown-900: #3d2b1f;
-  --ref-color-night: #14181e;
   --ref-color-alpha-white-97: rgb(255 255 255 / 0.97);
   --ref-color-alpha-stone-900-97: rgb(28 25 23 / 0.97);
   --ref-color-alpha-night-94: rgb(20 24 30 / 0.94);
@@ -34,6 +32,52 @@
   --ref-color-alpha-black-35: rgb(0 0 0 / 0.35);
   --ref-color-alpha-black-45: rgb(0 0 0 / 0.45);
   --ref-color-alpha-black-50: rgb(0 0 0 / 0.5);
+  --ref-space-2: 2px;
+  --ref-space-4: 4px;
+  --ref-space-8: 8px;
+  --ref-space-12: 12px;
+  --ref-space-16: 16px;
+  --ref-space-24: 24px;
+  --ref-size-4: 4px;
+  --ref-size-16: 16px;
+  --ref-size-20: 20px;
+  --ref-size-24: 24px;
+  --ref-size-32: 32px;
+  --ref-size-36: 36px;
+  --ref-size-40: 40px;
+  --ref-size-44: 44px;
+  --ref-size-280: 280px;
+  --ref-size-360: 360px;
+  --ref-radius-4: 4px;
+  --ref-radius-8: 8px;
+  --ref-radius-12: 12px;
+  --ref-radius-16: 16px;
+  --ref-radius-9999: 9999px;
+  --ref-font-size-10: 10px;
+  --ref-font-size-12: 12px;
+  --ref-font-size-14: 14px;
+  --ref-font-size-16: 16px;
+  --ref-font-size-18: 18px;
+  --ref-font-size-20: 20px;
+  --ref-font-line-height-tight: 1.25;
+  --ref-font-line-height-base: 1.4;
+  --ref-font-line-height-none: 1;
+  --ref-font-weight-400: 400;
+  --ref-font-weight-600: 600;
+  --ref-font-weight-700: 700;
+  --ref-font-weight-800: 800;
+  --ref-font-tracking-tight: -0.5px;
+  --ref-font-tracking-none: 0px;
+  --ref-font-tracking-wide: 0.5px;
+  --ref-font-family-system: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --ref-duration-0: 0ms;
+  --ref-duration-100: 100ms;
+  --ref-duration-200: 200ms;
+  --ref-duration-400: 400ms;
+  --ref-duration-1000: 1000ms;
+  --ref-easing-standard: cubic-bezier(0.25, 0.1, 0.25, 1);
+  --ref-easing-linear: cubic-bezier(0, 0, 1, 1);
+  --ref-easing-in-out: cubic-bezier(0.42, 0, 0.58, 1);
   --ui-content-on-color: var(--ref-color-white);
   --ui-toast-surface: var(--ref-color-alpha-night-94);
   --ui-outline-subtle: var(--ref-color-alpha-black-15);
@@ -41,8 +85,63 @@
   --ui-shadow-overlay: 0px 6px 24px var(--ref-color-alpha-black-35);
   --ui-shadow-pin: 0px 1px 3px var(--ref-color-alpha-black-45);
   --ui-shadow-text-on-color: 0px 0px 2px var(--ref-color-alpha-black-50);
-  --ui-font-family-base: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  --ui-size-touch: 44px;
+  --ui-font-family-base: var(--ref-font-family-system);
+  --ui-font-weight-regular: var(--ref-font-weight-400);
+  --ui-font-weight-strong: var(--ref-font-weight-600);
+  --ui-font-weight-bold: var(--ref-font-weight-700);
+  --ui-size-touch: var(--ref-size-44);
+  --ui-size-control-md: var(--ref-size-40);
+  --ui-size-control-sm: var(--ref-size-36);
+  --ui-size-icon-sm: var(--ref-size-16);
+  --ui-size-icon-md: var(--ref-size-20);
+  --ui-size-icon-lg: var(--ref-size-24);
+  --ui-size-pin: var(--ref-size-32);
+  --ui-size-panel-md: var(--ref-size-360);
+  --ui-size-panel-sm: var(--ref-size-280);
+  --ui-size-grip: var(--ref-size-4);
+  --ui-space-inset-2xs: var(--ref-space-2);
+  --ui-space-inset-xs: var(--ref-space-4);
+  --ui-space-inset-sm: var(--ref-space-8);
+  --ui-space-inset-md: var(--ref-space-12);
+  --ui-space-inset-lg: var(--ref-space-16);
+  --ui-space-inset-xl: var(--ref-space-24);
+  --ui-space-gap-2xs: var(--ref-space-2);
+  --ui-space-gap-xs: var(--ref-space-4);
+  --ui-space-gap-sm: var(--ref-space-8);
+  --ui-space-gap-md: var(--ref-space-12);
+  --ui-space-gap-lg: var(--ref-space-16);
+  --ui-space-gap-xl: var(--ref-space-24);
+  --ui-space-edge: var(--ref-space-12);
+  --ui-radius-small: var(--ref-radius-4);
+  --ui-radius-item: var(--ref-radius-8);
+  --ui-radius-control: var(--ref-radius-12);
+  --ui-radius-container: var(--ref-radius-16);
+  --ui-radius-full: var(--ref-radius-9999);
+  --ui-type-title: var(--ref-font-weight-700) var(--ref-font-size-18)/var(--ref-font-line-height-tight) var(--ref-font-family-system);
+  --ui-type-title-tracking: var(--ref-font-tracking-none);
+  --ui-type-heading: var(--ref-font-weight-700) var(--ref-font-size-16)/var(--ref-font-line-height-tight) var(--ref-font-family-system);
+  --ui-type-heading-tracking: var(--ref-font-tracking-none);
+  --ui-type-body: var(--ref-font-weight-400) var(--ref-font-size-16)/var(--ref-font-line-height-base) var(--ref-font-family-system);
+  --ui-type-body-tracking: var(--ref-font-tracking-none);
+  --ui-type-body-sm: var(--ref-font-weight-400) var(--ref-font-size-14)/var(--ref-font-line-height-base) var(--ref-font-family-system);
+  --ui-type-body-sm-tracking: var(--ref-font-tracking-none);
+  --ui-type-label: var(--ref-font-weight-600) var(--ref-font-size-14)/var(--ref-font-line-height-base) var(--ref-font-family-system);
+  --ui-type-label-tracking: var(--ref-font-tracking-none);
+  --ui-type-caption: var(--ref-font-weight-400) var(--ref-font-size-12)/var(--ref-font-line-height-base) var(--ref-font-family-system);
+  --ui-type-caption-tracking: var(--ref-font-tracking-none);
+  --ui-type-overline: var(--ref-font-weight-600) var(--ref-font-size-12)/var(--ref-font-line-height-base) var(--ref-font-family-system);
+  --ui-type-overline-tracking: var(--ref-font-tracking-wide);
+  --ui-type-symbol: var(--ref-font-weight-700) var(--ref-font-size-20)/var(--ref-font-line-height-none) var(--ref-font-family-system);
+  --ui-type-symbol-tracking: var(--ref-font-tracking-none);
+  --ui-type-symbol-sm: var(--ref-font-weight-400) var(--ref-font-size-18)/var(--ref-font-line-height-tight) var(--ref-font-family-system);
+  --ui-type-symbol-sm-tracking: var(--ref-font-tracking-tight);
+  --ui-layer-sheet: 1000;
+  --ui-layer-map-controls: 1001;
+  --ui-layer-toast: 1200;
+  --ui-layer-banner: 1201;
+  --ui-motion-easing-standard: var(--ref-easing-standard);
+  --ui-motion-easing-linear: var(--ref-easing-linear);
+  --ui-motion-easing-pulse: var(--ref-easing-in-out);
   --map-status-ok: var(--ref-color-green-600);
   --map-status-wait: var(--ref-color-yellow-500);
   --map-status-closed: var(--ref-color-red-600);
@@ -73,6 +172,14 @@
   --map-plan-pin-from: var(--ref-color-teal-700);
   --map-plan-pin-via: var(--ref-color-stone-600);
   --map-plan-pin-to: var(--ref-color-red-700);
+  --map-label-size-leg: var(--ref-font-size-12);
+  --map-label-size-line: var(--ref-font-size-14);
+  --map-label-size-total: var(--ref-font-size-14);
+  --map-label-weight-leg: var(--ref-font-weight-600);
+  --map-label-weight-strong: var(--ref-font-weight-800);
+  --map-label-tracking-leg: var(--ref-font-tracking-wide);
+  --map-label-badge: var(--ref-font-weight-700) var(--ref-font-size-10)/var(--ref-font-line-height-none) var(--ref-font-family-system);
+  --map-label-badge-tracking: var(--ref-font-tracking-none);
   --brand-theme: var(--ref-color-teal-700);
   --brand-splash: var(--ref-color-brown-900);
   --ui-surface-page: var(--ref-color-white);
@@ -82,6 +189,10 @@
   --ui-border-default: var(--ref-color-stone-200);
   --ui-accent-default: var(--ref-color-teal-700);
   --ui-accent-on: var(--ref-color-white);
+  --ui-motion-duration-fast: var(--ref-duration-100);
+  --ui-motion-duration-base: var(--ref-duration-200);
+  --ui-motion-duration-slow: var(--ref-duration-400);
+  --ui-motion-duration-loop: var(--ref-duration-1000);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -93,5 +204,14 @@
     --ui-border-default: var(--ref-color-stone-800);
     --ui-accent-default: var(--ref-color-teal-400);
     --ui-accent-on: var(--ref-color-teal-950);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --ui-motion-duration-fast: var(--ref-duration-0);
+    --ui-motion-duration-base: var(--ref-duration-0);
+    --ui-motion-duration-slow: var(--ref-duration-0);
+    --ui-motion-duration-loop: var(--ref-duration-0);
   }
 }

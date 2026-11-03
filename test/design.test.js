@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 
-import { buildTokens, DESIGN_DOC, OUT_CSS, OUT_JS, resolveScheme, resolveValue, SCHEMES, updateDesignDoc } from '../scripts/build-tokens.mjs';
+import { buildTokens, DESIGN_DOC, MODIFIERS, OUT_CSS, OUT_JS, resolveContexts, resolveScheme, resolveValue, SCHEMES, updateDesignDoc } from '../scripts/build-tokens.mjs';
 import { tokens } from '../public/js/tokens.js';
 
 const ROOT = join(import.meta.dirname, '..');
@@ -17,9 +17,8 @@ const meta = (t) => t.$extensions?.[NS] ?? {};
 // Role tokens that may hold a raw value, and why. Everything else points at ref. A key
 // ending in .* covers a group. Shadows under it still need their colour from ref.
 const ROLE_LITERALS = {
-  'ui.size.touch': 'Não há escala de tamanhos ainda (vem no redesign).',
-  'ui.font.family.base': 'A fonte do sistema não é uma primitiva da paleta.',
-  'ui.shadow.*': 'Deslocamento e desfoque: não há escala de espaço ainda (vem no redesign).',
+  'ui.shadow.*': 'Deslocamento e desfoque de sombra (1, 3, 6 px…) não cabem na grade de espaço; a cor vem da paleta.',
+  'ui.layer.*': 'A ordem de empilhamento conversa com números fixos do Leaflet (popups em 700, controles em 1000), não com uma escala.',
 };
 const literalRule = (key) => Object.keys(ROLE_LITERALS).find((k) => k === key || (k.endsWith('.*') && key.startsWith(k.slice(0, -1))));
 // Custom properties set at runtime, outside the tokens.
@@ -47,7 +46,10 @@ test('ref is the palette: no aliases', () => {
 });
 
 // The words `usage` may use (DESIGN.md, "Metadados"), so tools can rely on them.
-const USAGE = ['text', 'icon', 'background', 'border', 'outline', 'line', 'fill', 'shadow', 'text-shadow', 'font', 'width', 'height', 'theme-color'];
+const USAGE = [
+  'text', 'icon', 'background', 'border', 'outline', 'line', 'fill', 'shadow', 'text-shadow', 'font', 'theme-color',
+  'padding', 'gap', 'margin', 'position', 'width', 'height', 'radius', 'z-index', 'transition', 'animation',
+];
 
 test('every role has a description and a usage from the list', () => {
   for (const t of roles) {
@@ -68,6 +70,13 @@ test('roles point at ref, except the declared literals', () => {
       const where = `${key} (${scheme})`;
       const rule = literalRule(key);
       if (isAlias(t.$value)) { pointsAtRef(t.$value, where); continue; }
+      if (t.$type === 'typography') {
+        for (const [part, v] of Object.entries(t.$value)) {
+          assert.ok(isAlias(v), `${where}: raw ${part}`);
+          pointsAtRef(v, `${where}.${part}`);
+        }
+        continue;
+      }
       if (t.$type === 'shadow') {
         for (const s of [t.$value].flat()) {
           assert.ok(isAlias(s.color), `${where}: the shadow colour must be a token`);
@@ -84,7 +93,7 @@ test('roles point at ref, except the declared literals', () => {
   for (const rule of Object.keys(ROLE_LITERALS)) assert.ok(used.has(rule), `ROLE_LITERALS["${rule}"] covers no raw value: remove it`);
 });
 
-test('the dark theme has exactly the tokens of the light one, values only', () => {
+test('each modifier context has exactly the tokens of the default one, values only', () => {
   const flat = (file) => {
     const out = new Map();
     const walk = (node, path) => {
@@ -97,10 +106,43 @@ test('the dark theme has exactly the tokens of the light one, values only', () =
     walk(JSON.parse(read(file)), []);
     return out;
   };
-  const light = flat('design/tokens/themes/light.tokens.json');
-  const dark = flat('design/tokens/themes/dark.tokens.json');
-  assert.deepEqual([...dark.keys()].sort(), [...light.keys()].sort());
-  for (const [key, t] of dark) assert.deepEqual(Object.keys(t), ['$value'], `${key}: description and metadata live in light.tokens.json`);
+  const resolver = JSON.parse(read('design/tokens/bicibusao.resolver.json'));
+  for (const [name, [first, ...others]] of Object.entries(MODIFIERS)) {
+    const files = (c) => resolver.modifiers[name].contexts[c].map((s) => `design/tokens/${s.$ref}`);
+    const keys = (c) => files(c).flatMap((f) => [...flat(f).keys()]).sort();
+    for (const c of others) {
+      assert.deepEqual(keys(c), keys(first), `${name}: ${c} and ${first} must define the same tokens`);
+      for (const f of files(c)) {
+        for (const [key, t] of flat(f)) assert.deepEqual(Object.keys(t), ['$value'], `${f}: ${key}: description and metadata live in the ${first} file`);
+      }
+    }
+  }
+});
+
+test('space and size sit on the 4 px grid (2 px is the one exception)', () => {
+  for (const t of schemes.light.values()) {
+    if (t.path[0] !== 'ref' || !['space', 'size'].includes(t.path[1])) continue;
+    const { value, unit } = t.$value;
+    assert.equal(unit, 'px', t.path.join('.'));
+    assert.ok(value % 4 === 0 || value === 2, `${t.path.join('.')} = ${value}px is off the grid`);
+  }
+});
+
+// The properties style.css must fill from tokens. 0, percentages, keywords and var() are fine.
+const SCALED = /^\s*(padding|margin|gap|row-gap|column-gap|border-radius|font|font-size|font-weight|line-height|letter-spacing|transition|animation|z-index)(-[a-z-]+)?\s*:\s*([^;]+);/;
+
+test('spacing, radius, type, motion and layers in style.css come from tokens', () => {
+  const found = [];
+  read('public/style.css').split('\n').forEach((line, i) => {
+    for (const decl of line.split(/[{;}]/).map((d) => `${d.trim()};`)) {
+      const m = decl.match(SCALED);
+      if (!m) continue;
+      // What's left once tokens are taken out: a number with a unit, or a bare number, is a literal.
+      const rest = m[3].replace(/var\(--[\w-]+\)/g, '').replace(/\*\s*-1\b/g, '').replace(/!important/g, '');
+      if (/(?<![\w-])-?\d*\.?\d+(px|em|rem|ms|s)?(?![\w%-])/.test(rest.replace(/\b0\b/g, ''))) found.push(`style.css:${i + 1}: ${decl}`);
+    }
+  });
+  assert.deepEqual(found, [], 'use a token (DESIGN.md, "Usar um token")');
 });
 
 test('no colour literals outside the tokens', () => {
@@ -178,4 +220,31 @@ test('every token path the JavaScript reads exists', () => {
       }
     }
   }
+});
+
+// Inline styles in generated HTML may only carry what's computed at runtime (a line's
+// colour, a size from the zoom); everything else is a class in style.css.
+const INLINE_OK = ['background', 'width', 'height', 'transform', 'fill'];
+
+test('inline styles in JavaScript only set runtime values', () => {
+  for (const f of readdirSync(join(ROOT, 'public/js')).filter((x) => x.endsWith('.js'))) {
+    for (const [, style] of read(`public/js/${f}`).matchAll(/style="([^"]*)"/g)) {
+      for (const prop of style.split(';').map((d) => d.split(':')[0].trim()).filter(Boolean)) {
+        assert.ok(INLINE_OK.includes(prop), `public/js/${f}: inline ${prop} in style="${style}": use a class`);
+      }
+    }
+  }
+});
+
+test('the palette holds only what some role uses', () => {
+  const used = new Set();
+  for (const [m, contexts] of Object.entries(MODIFIERS)) {
+    for (const c of contexts) {
+      for (const t of resolveContexts({ [m]: c }).values()) {
+        if (t.path[0] !== 'ref') JSON.stringify(t.$value).replace(/\{(ref\.[^}]+)\}/g, (_, r) => used.add(r));
+      }
+    }
+  }
+  const unused = [...schemes.light.values()].filter((t) => t.path[0] === 'ref' && !used.has(t.path.join('.'))).map((t) => t.path.join('.'));
+  assert.deepEqual(unused, [], 'remove these from ref.tokens.json, or give them a role');
 });

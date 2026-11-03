@@ -10,13 +10,6 @@
           "hex": "#ffffff"
         }
       },
-      "black": {
-        "$value": {
-          "colorSpace": "srgb",
-          "components": [0, 0, 0],
-          "hex": "#000000"
-        }
-      },
       "stone": {
         "100": {
           "$value": {
@@ -196,14 +189,6 @@
           "$description": "Fora da escala Tailwind: o marrom-escuro do ícone do app."
         }
       },
-      "night": {
-        "$value": {
-          "colorSpace": "srgb",
-          "components": [0.0784, 0.0941, 0.1176],
-          "hex": "#14181e"
-        },
-        "$description": "Fora da escala Tailwind: o quase-preto azulado do toast."
-      },
       "alpha": {
         "$description": "Cores translúcidas. O DTCG não tem modificador de opacidade, então cada uma é uma primitiva.",
         "white-97": {
@@ -270,6 +255,291 @@
             "hex": "#000000"
           }
         }
+      }
+    },
+    "space": {
+      "2": {
+        "$value": {
+          "value": 2,
+          "unit": "px"
+        }
+      },
+      "4": {
+        "$value": {
+          "value": 4,
+          "unit": "px"
+        }
+      },
+      "8": {
+        "$value": {
+          "value": 8,
+          "unit": "px"
+        }
+      },
+      "12": {
+        "$value": {
+          "value": 12,
+          "unit": "px"
+        }
+      },
+      "16": {
+        "$value": {
+          "value": 16,
+          "unit": "px"
+        }
+      },
+      "24": {
+        "$value": {
+          "value": 24,
+          "unit": "px"
+        }
+      },
+      "$type": "dimension",
+      "$description": "Espaçamento: grade de 4 px, com 2 px como única exceção. Nomeado pelo valor em px."
+    },
+    "size": {
+      "4": {
+        "$value": {
+          "value": 4,
+          "unit": "px"
+        }
+      },
+      "16": {
+        "$value": {
+          "value": 16,
+          "unit": "px"
+        }
+      },
+      "20": {
+        "$value": {
+          "value": 20,
+          "unit": "px"
+        }
+      },
+      "24": {
+        "$value": {
+          "value": 24,
+          "unit": "px"
+        }
+      },
+      "32": {
+        "$value": {
+          "value": 32,
+          "unit": "px"
+        }
+      },
+      "36": {
+        "$value": {
+          "value": 36,
+          "unit": "px"
+        }
+      },
+      "40": {
+        "$value": {
+          "value": 40,
+          "unit": "px"
+        }
+      },
+      "44": {
+        "$value": {
+          "value": 44,
+          "unit": "px"
+        }
+      },
+      "280": {
+        "$value": {
+          "value": 280,
+          "unit": "px"
+        }
+      },
+      "360": {
+        "$value": {
+          "value": 360,
+          "unit": "px"
+        }
+      },
+      "$type": "dimension",
+      "$description": "Tamanhos de elementos (ícones, controles, painéis), na grade de 4 px. Nomeado pelo valor em px."
+    },
+    "radius": {
+      "4": {
+        "$value": {
+          "value": 4,
+          "unit": "px"
+        }
+      },
+      "8": {
+        "$value": {
+          "value": 8,
+          "unit": "px"
+        }
+      },
+      "12": {
+        "$value": {
+          "value": 12,
+          "unit": "px"
+        }
+      },
+      "16": {
+        "$value": {
+          "value": 16,
+          "unit": "px"
+        }
+      },
+      "9999": {
+        "$value": {
+          "value": 9999,
+          "unit": "px"
+        }
+      },
+      "$type": "dimension",
+      "$description": "Raios de canto, nomeados pelo valor em px. 9999 é o arredondado total (pílula ou círculo)."
+    },
+    "font": {
+      "$description": "Escalas de texto. Tamanhos na grade de 2 px, nomeados pelo valor.",
+      "size": {
+        "10": {
+          "$value": {
+            "value": 10,
+            "unit": "px"
+          }
+        },
+        "12": {
+          "$value": {
+            "value": 12,
+            "unit": "px"
+          }
+        },
+        "14": {
+          "$value": {
+            "value": 14,
+            "unit": "px"
+          }
+        },
+        "16": {
+          "$value": {
+            "value": 16,
+            "unit": "px"
+          }
+        },
+        "18": {
+          "$value": {
+            "value": 18,
+            "unit": "px"
+          }
+        },
+        "20": {
+          "$value": {
+            "value": 20,
+            "unit": "px"
+          }
+        },
+        "$type": "dimension"
+      },
+      "line-height": {
+        "$type": "number",
+        "$description": "Multiplicador do tamanho da fonte.",
+        "tight": {
+          "$value": 1.25
+        },
+        "base": {
+          "$value": 1.4
+        },
+        "none": {
+          "$value": 1
+        }
+      },
+      "weight": {
+        "400": {
+          "$value": 400
+        },
+        "600": {
+          "$value": 600
+        },
+        "700": {
+          "$value": 700
+        },
+        "800": {
+          "$value": 800
+        },
+        "$type": "fontWeight"
+      },
+      "tracking": {
+        "$type": "dimension",
+        "tight": {
+          "$value": {
+            "value": -0.5,
+            "unit": "px"
+          }
+        },
+        "none": {
+          "$value": {
+            "value": 0,
+            "unit": "px"
+          }
+        },
+        "wide": {
+          "$value": {
+            "value": 0.5,
+            "unit": "px"
+          }
+        }
+      },
+      "family": {
+        "$type": "fontFamily",
+        "system": {
+          "$value": ["system-ui", "-apple-system", "Segoe UI", "Roboto", "sans-serif"],
+          "$description": "A fonte do sistema de cada aparelho."
+        }
+      }
+    },
+    "duration": {
+      "0": {
+        "$value": {
+          "value": 0,
+          "unit": "ms"
+        }
+      },
+      "100": {
+        "$value": {
+          "value": 100,
+          "unit": "ms"
+        }
+      },
+      "200": {
+        "$value": {
+          "value": 200,
+          "unit": "ms"
+        }
+      },
+      "400": {
+        "$value": {
+          "value": 400,
+          "unit": "ms"
+        }
+      },
+      "1000": {
+        "$value": {
+          "value": 1000,
+          "unit": "ms"
+        }
+      },
+      "$type": "duration",
+      "$description": "Durações, nomeadas pelo valor em ms."
+    },
+    "easing": {
+      "$type": "cubicBezier",
+      "$description": "Curvas de animação.",
+      "standard": {
+        "$value": [0.25, 0.1, 0.25, 1],
+        "$description": "A curva ease do CSS."
+      },
+      "linear": {
+        "$value": [0, 0, 1, 1]
+      },
+      "in-out": {
+        "$value": [0.42, 0, 0.58, 1],
+        "$description": "A curva ease-in-out do CSS."
       }
     }
   }

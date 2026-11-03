@@ -196,8 +196,38 @@
       "family": {
         "$type": "fontFamily",
         "base": {
-          "$value": ["system-ui", "-apple-system", "Segoe UI", "Roboto", "sans-serif"],
+          "$value": "{ref.font.family.system}",
           "$description": "Fonte do sistema: zero download, e o texto fica com a cara do celular de quem usa.",
+          "$extensions": {
+            "info.bicisampa": {
+              "usage": ["font"]
+            }
+          }
+        }
+      },
+      "weight": {
+        "$type": "fontWeight",
+        "regular": {
+          "$value": "{ref.font.weight.400}",
+          "$description": "Texto corrido.",
+          "$extensions": {
+            "info.bicisampa": {
+              "usage": ["font"]
+            }
+          }
+        },
+        "strong": {
+          "$value": "{ref.font.weight.600}",
+          "$description": "Destaque dentro do texto: nomes de linha, rótulos, a opção escolhida.",
+          "$extensions": {
+            "info.bicisampa": {
+              "usage": ["font"]
+            }
+          }
+        },
+        "bold": {
+          "$value": "{ref.font.weight.700}",
+          "$description": "Títulos, badges e o que precisa saltar.",
           "$extensions": {
             "info.bicisampa": {
               "usage": ["font"]
@@ -209,14 +239,482 @@
     "size": {
       "$type": "dimension",
       "touch": {
-        "$value": {
-          "value": 44,
-          "unit": "px"
-        },
+        "$value": "{ref.size.44}",
         "$description": "Lado mínimo de tudo que se toca (Apple HIG: 44 pt).",
         "$extensions": {
           "info.bicisampa": {
             "usage": ["width", "height"]
+          }
+        }
+      },
+      "control": {
+        "md": {
+          "$value": "{ref.size.40}",
+          "$description": "Altura dos botões de zoom do mapa.",
+          "$extensions": {
+            "info.bicisampa": {
+              "usage": ["height"]
+            }
+          }
+        },
+        "sm": {
+          "$value": "{ref.size.36}",
+          "$description": "Botões secundários em pílula (Compartilhar, Desfazer): menores que a área de toque, mas sempre dentro de uma linha que tem 44 px.",
+          "$extensions": {
+            "info.bicisampa": {
+              "usage": ["height"]
+            }
+          }
+        }
+      },
+      "icon": {
+        "sm": {
+          "$value": "{ref.size.16}",
+          "$description": "Ícones dentro de texto e listas.",
+          "$extensions": {
+            "info.bicisampa": {
+              "usage": ["width", "height"]
+            }
+          }
+        },
+        "md": {
+          "$value": "{ref.size.20}",
+          "$description": "Ícones de botão.",
+          "$extensions": {
+            "info.bicisampa": {
+              "usage": ["width", "height"]
+            }
+          }
+        },
+        "lg": {
+          "$value": "{ref.size.24}",
+          "$description": "Ícones de destaque, pins da lista e caixas de seleção.",
+          "$extensions": {
+            "info.bicisampa": {
+              "usage": ["width", "height"]
+            }
+          }
+        }
+      },
+      "pin": {
+        "$value": "{ref.size.32}",
+        "$description": "Pins A/B/parada sobre o mapa.",
+        "$extensions": {
+          "info.bicisampa": {
+            "usage": ["width", "height"]
+          }
+        }
+      },
+      "panel": {
+        "md": {
+          "$value": "{ref.size.360}",
+          "$description": "Largura do menu em telas largas.",
+          "$extensions": {
+            "info.bicisampa": {
+              "usage": ["width"]
+            }
+          }
+        },
+        "sm": {
+          "$value": "{ref.size.280}",
+          "$description": "Largura da folha de camadas em telas largas.",
+          "$extensions": {
+            "info.bicisampa": {
+              "usage": ["width"]
+            }
+          }
+        }
+      },
+      "grip": {
+        "$value": "{ref.size.4}",
+        "$description": "Espessura da alça de arrastar da folha no celular.",
+        "$extensions": {
+          "info.bicisampa": {
+            "usage": ["height"]
+          }
+        }
+      }
+    },
+    "space": {
+      "$type": "dimension",
+      "$description": "Dois papéis: inset é o espaço por dentro (padding), gap o espaço entre coisas (gap e margin). Os mesmos passos nos dois, para combinar.",
+      "inset": {
+        "2xs": {
+          "$value": "{ref.space.2}",
+          "$description": "Espaço interno 2xs.",
+          "$extensions": {
+            "info.bicisampa": {
+              "usage": ["padding"]
+            }
+          }
+        },
+        "xs": {
+          "$value": "{ref.space.4}",
+          "$description": "Espaço interno xs.",
+          "$extensions": {
+            "info.bicisampa": {
+              "usage": ["padding"]
+            }
+          }
+        },
+        "sm": {
+          "$value": "{ref.space.8}",
+          "$description": "Espaço interno sm.",
+          "$extensions": {
+            "info.bicisampa": {
+              "usage": ["padding"]
+            }
+          }
+        },
+        "md": {
+          "$value": "{ref.space.12}",
+          "$description": "Espaço interno md.",
+          "$extensions": {
+            "info.bicisampa": {
+              "usage": ["padding"]
+            }
+          }
+        },
+        "lg": {
+          "$value": "{ref.space.16}",
+          "$description": "Espaço interno lg.",
+          "$extensions": {
+            "info.bicisampa": {
+              "usage": ["padding"]
+            }
+          }
+        },
+        "xl": {
+          "$value": "{ref.space.24}",
+          "$description": "Espaço interno xl.",
+          "$extensions": {
+            "info.bicisampa": {
+              "usage": ["padding"]
+            }
+          }
+        }
+      },
+      "gap": {
+        "2xs": {
+          "$value": "{ref.space.2}",
+          "$description": "Espaço entre itens 2xs.",
+          "$extensions": {
+            "info.bicisampa": {
+              "usage": ["gap", "margin"]
+            }
+          }
+        },
+        "xs": {
+          "$value": "{ref.space.4}",
+          "$description": "Espaço entre itens xs.",
+          "$extensions": {
+            "info.bicisampa": {
+              "usage": ["gap", "margin"]
+            }
+          }
+        },
+        "sm": {
+          "$value": "{ref.space.8}",
+          "$description": "Espaço entre itens sm.",
+          "$extensions": {
+            "info.bicisampa": {
+              "usage": ["gap", "margin"]
+            }
+          }
+        },
+        "md": {
+          "$value": "{ref.space.12}",
+          "$description": "Espaço entre itens md.",
+          "$extensions": {
+            "info.bicisampa": {
+              "usage": ["gap", "margin"]
+            }
+          }
+        },
+        "lg": {
+          "$value": "{ref.space.16}",
+          "$description": "Espaço entre itens lg.",
+          "$extensions": {
+            "info.bicisampa": {
+              "usage": ["gap", "margin"]
+            }
+          }
+        },
+        "xl": {
+          "$value": "{ref.space.24}",
+          "$description": "Espaço entre itens xl.",
+          "$extensions": {
+            "info.bicisampa": {
+              "usage": ["gap", "margin"]
+            }
+          }
+        }
+      },
+      "edge": {
+        "$value": "{ref.space.12}",
+        "$description": "Distância dos controles e painéis até a borda da tela (somada à área segura do aparelho).",
+        "$extensions": {
+          "info.bicisampa": {
+            "usage": ["margin", "position"]
+          }
+        }
+      }
+    },
+    "radius": {
+      "$type": "dimension",
+      "small": {
+        "$value": "{ref.radius.4}",
+        "$description": "Peças pequenas: badges de linha, amostras da legenda, ícones de estação.",
+        "$extensions": {
+          "info.bicisampa": {
+            "usage": ["radius"]
+          }
+        }
+      },
+      "item": {
+        "$value": "{ref.radius.8}",
+        "$description": "Linhas de lista selecionáveis e a opção de rota escolhida.",
+        "$extensions": {
+          "info.bicisampa": {
+            "usage": ["radius"]
+          }
+        }
+      },
+      "control": {
+        "$value": "{ref.radius.12}",
+        "$description": "Botões, campos e os botões sobre o mapa.",
+        "$extensions": {
+          "info.bicisampa": {
+            "usage": ["radius"]
+          }
+        }
+      },
+      "container": {
+        "$value": "{ref.radius.16}",
+        "$description": "Painéis e folhas.",
+        "$extensions": {
+          "info.bicisampa": {
+            "usage": ["radius"]
+          }
+        }
+      },
+      "full": {
+        "$value": "{ref.radius.9999}",
+        "$description": "Pílulas e círculos (pins, bolinhas de status, toast).",
+        "$extensions": {
+          "info.bicisampa": {
+            "usage": ["radius"]
+          }
+        }
+      }
+    },
+    "type": {
+      "$type": "typography",
+      "$description": "Estilos de texto completos (tamanho, altura de linha, peso, espaçamento). No CSS: font: var(--ui-type-x); letter-spacing: var(--ui-type-x-tracking).",
+      "title": {
+        "$value": {
+          "fontFamily": "{ref.font.family.system}",
+          "fontSize": "{ref.font.size.18}",
+          "fontWeight": "{ref.font.weight.700}",
+          "letterSpacing": "{ref.font.tracking.none}",
+          "lineHeight": "{ref.font.line-height.tight}"
+        },
+        "$description": "O nome do app no topo do menu.",
+        "$extensions": {
+          "info.bicisampa": {
+            "usage": ["font"]
+          }
+        }
+      },
+      "heading": {
+        "$value": {
+          "fontFamily": "{ref.font.family.system}",
+          "fontSize": "{ref.font.size.16}",
+          "fontWeight": "{ref.font.weight.700}",
+          "letterSpacing": "{ref.font.tracking.none}",
+          "lineHeight": "{ref.font.line-height.tight}"
+        },
+        "$description": "Títulos de popup e de trecho da rota.",
+        "$extensions": {
+          "info.bicisampa": {
+            "usage": ["font"]
+          }
+        }
+      },
+      "body": {
+        "$value": {
+          "fontFamily": "{ref.font.family.system}",
+          "fontSize": "{ref.font.size.16}",
+          "fontWeight": "{ref.font.weight.400}",
+          "letterSpacing": "{ref.font.tracking.none}",
+          "lineHeight": "{ref.font.line-height.base}"
+        },
+        "$description": "Texto corrido e campos (16 px: o iPhone não dá zoom ao tocar no campo).",
+        "$extensions": {
+          "info.bicisampa": {
+            "usage": ["font"]
+          }
+        }
+      },
+      "body-sm": {
+        "$value": {
+          "fontFamily": "{ref.font.family.system}",
+          "fontSize": "{ref.font.size.14}",
+          "fontWeight": "{ref.font.weight.400}",
+          "letterSpacing": "{ref.font.tracking.none}",
+          "lineHeight": "{ref.font.line-height.base}"
+        },
+        "$description": "Texto de apoio: detalhes, notas, conteúdo dos popups.",
+        "$extensions": {
+          "info.bicisampa": {
+            "usage": ["font"]
+          }
+        }
+      },
+      "label": {
+        "$value": {
+          "fontFamily": "{ref.font.family.system}",
+          "fontSize": "{ref.font.size.14}",
+          "fontWeight": "{ref.font.weight.600}",
+          "letterSpacing": "{ref.font.tracking.none}",
+          "lineHeight": "{ref.font.line-height.base}"
+        },
+        "$description": "Botões, opções e rótulos curtos.",
+        "$extensions": {
+          "info.bicisampa": {
+            "usage": ["font"]
+          }
+        }
+      },
+      "caption": {
+        "$value": {
+          "fontFamily": "{ref.font.family.system}",
+          "fontSize": "{ref.font.size.12}",
+          "fontWeight": "{ref.font.weight.400}",
+          "letterSpacing": "{ref.font.tracking.none}",
+          "lineHeight": "{ref.font.line-height.base}"
+        },
+        "$description": "Créditos, fonte dos dados, legendas miúdas.",
+        "$extensions": {
+          "info.bicisampa": {
+            "usage": ["font"]
+          }
+        }
+      },
+      "overline": {
+        "$value": {
+          "fontFamily": "{ref.font.family.system}",
+          "fontSize": "{ref.font.size.12}",
+          "fontWeight": "{ref.font.weight.600}",
+          "letterSpacing": "{ref.font.tracking.wide}",
+          "lineHeight": "{ref.font.line-height.base}"
+        },
+        "$description": "Títulos de seção, em caixa alta.",
+        "$extensions": {
+          "info.bicisampa": {
+            "usage": ["font"]
+          }
+        }
+      },
+      "symbol": {
+        "$value": {
+          "fontFamily": "{ref.font.family.system}",
+          "fontSize": "{ref.font.size.20}",
+          "fontWeight": "{ref.font.weight.700}",
+          "letterSpacing": "{ref.font.tracking.none}",
+          "lineHeight": "{ref.font.line-height.none}"
+        },
+        "$description": "Glifos de texto nos botões do mapa (+, −, ≡). Provisório: sai quando os ícones chegarem.",
+        "$extensions": {
+          "info.bicisampa": {
+            "usage": ["font"]
+          }
+        }
+      },
+      "symbol-sm": {
+        "$value": {
+          "fontFamily": "{ref.font.family.system}",
+          "fontSize": "{ref.font.size.18}",
+          "fontWeight": "{ref.font.weight.400}",
+          "letterSpacing": "{ref.font.tracking.tight}",
+          "lineHeight": "{ref.font.line-height.tight}"
+        },
+        "$description": "Emojis nos botões do planejador, um pouco apertados para caberem lado a lado. Provisório: sai quando os ícones chegarem.",
+        "$extensions": {
+          "info.bicisampa": {
+            "usage": ["font"]
+          }
+        }
+      }
+    },
+    "layer": {
+      "$type": "number",
+      "$description": "Ordem de empilhamento acima do mapa. Os números conversam com os do Leaflet (popups em 700, controles em 1000).",
+      "sheet": {
+        "$value": 1000,
+        "$description": "Menu e folha de camadas.",
+        "$extensions": {
+          "info.bicisampa": {
+            "usage": ["z-index"]
+          }
+        }
+      },
+      "map-controls": {
+        "$value": 1001,
+        "$description": "Botões sobre o mapa, acima das folhas.",
+        "$extensions": {
+          "info.bicisampa": {
+            "usage": ["z-index"]
+          }
+        }
+      },
+      "toast": {
+        "$value": 1200,
+        "$description": "O toast.",
+        "$extensions": {
+          "info.bicisampa": {
+            "usage": ["z-index"]
+          }
+        }
+      },
+      "banner": {
+        "$value": 1201,
+        "$description": "O aviso de nova versão, acima de tudo.",
+        "$extensions": {
+          "info.bicisampa": {
+            "usage": ["z-index"]
+          }
+        }
+      }
+    },
+    "motion": {
+      "easing": {
+        "$type": "cubicBezier",
+        "standard": {
+          "$value": "{ref.easing.standard}",
+          "$description": "Quase todas as transições.",
+          "$extensions": {
+            "info.bicisampa": {
+              "usage": ["transition"]
+            }
+          }
+        },
+        "linear": {
+          "$value": "{ref.easing.linear}",
+          "$description": "Movimento que acompanha um gesto contínuo.",
+          "$extensions": {
+            "info.bicisampa": {
+              "usage": ["transition"]
+            }
+          }
+        },
+        "pulse": {
+          "$value": "{ref.easing.in-out}",
+          "$description": "Animações em loop, que vão e voltam.",
+          "$extensions": {
+            "info.bicisampa": {
+              "usage": ["animation"]
+            }
           }
         }
       }

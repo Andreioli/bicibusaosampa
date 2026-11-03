@@ -245,11 +245,11 @@ append `window.__map = map;`.
 
 ## Visual conventions (chosen by the maintainer)
 
-Colours, shadows and the font are design tokens: read DESIGN.md before any visual change.
-Edit `design/tokens/*.tokens.json` (DTCG 2025.10), run `npm run build:tokens`, never edit
-`public/tokens.css` or `public/js/tokens.js`, and use no colour literal in CSS, HTML or JS
-(`test/design.test.js` enforces it). The rules below are what the colours *mean*; the
-tokens hold the values.
+Colours, spacing, type, radii, motion and layers are design tokens: read DESIGN.md before
+any visual change. Edit `design/tokens/*.tokens.json` (DTCG 2025.10), run
+`npm run build:tokens`, never edit `public/tokens.css` or `public/js/tokens.js`, and use no
+colour, spacing, type, radius, motion or z-index literal (`test/design.test.js` enforces
+it). The rules below are what the colours *mean*; the tokens hold the values.
 
 - **Rail lines:** thin continuous lines in the status colour: green when bikes are
   allowed now, yellow when the line runs but it's outside bike hours, red when the line

@@ -1,0 +1,22 @@
+{
+  "$description": "Movimento reduzido: só os valores. Descrição e metadados ficam em standard.tokens.json.",
+  "ui": {
+    "motion": {
+      "duration": {
+        "$type": "duration",
+        "fast": {
+          "$value": "{ref.duration.0}"
+        },
+        "base": {
+          "$value": "{ref.duration.0}"
+        },
+        "slow": {
+          "$value": "{ref.duration.0}"
+        },
+        "loop": {
+          "$value": "{ref.duration.0}"
+        }
+      }
+    }
+  }
+}

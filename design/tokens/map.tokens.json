@@ -1,7 +1,6 @@
 {
   "$description": "Simbologia do mapa. Cada cor responde a uma pergunta de quem pedala; o significado vem antes do tom. Não muda no modo escuro: o mapa precisa ler igual de dia e de noite. As cores oficiais das linhas de metrô e trem não estão aqui: são dados das operadoras (public/data/rail-lines.json).",
   "map": {
-    "$type": "color",
     "status": {
       "$description": "Dá para levar a bici agora? Trilhos, pontos e a legenda.",
       "ok": {
@@ -32,7 +31,8 @@
             "avoid": ["linha contínua: fechado é sempre pontilhado"]
           }
         }
-      }
+      },
+      "$type": "color"
     },
     "bus": {
       "$description": "Ônibus SPTrans: duas perguntas numa cor. A bici pode subir agora (Portaria SMT 32/2016)? E este é um superarticulado na linha habitual?",
@@ -84,7 +84,8 @@
             "usage": ["fill", "line", "background"]
           }
         }
-      }
+      },
+      "$type": "color"
     },
     "parking": {
       "$description": "Dá para deixar a bici aqui agora, e em que condições? A forma diz o tipo (casinha = bicicletário, círculo = paraciclo).",
@@ -132,7 +133,8 @@
             "usage": ["fill"]
           }
         }
-      }
+      },
+      "$type": "color"
     },
     "icon": {
       "ink": {
@@ -204,7 +206,8 @@
             ]
           }
         }
-      }
+      },
+      "$type": "color"
     },
     "stop": {
       "body": {
@@ -224,7 +227,8 @@
             "usage": ["fill"]
           }
         }
-      }
+      },
+      "$type": "color"
     },
     "location": {
       "accent": {
@@ -235,7 +239,8 @@
             "usage": ["fill", "line"]
           }
         }
-      }
+      },
+      "$type": "color"
     },
     "compass": {
       "north": {
@@ -246,7 +251,8 @@
             "usage": ["fill"]
           }
         }
-      }
+      },
+      "$type": "color"
     },
     "plan": {
       "$description": "Trajeto planejado: a cor diz como se anda em cada trecho.",
@@ -348,6 +354,89 @@
             "info.bicisampa": {
               "usage": ["background"]
             }
+          }
+        }
+      },
+      "$type": "color"
+    },
+    "label": {
+      "$description": "Texto sobre o mapa, nos trechos da rota planejada. O JS lê os tamanhos para encolher o rótulo até caber no trecho.",
+      "size": {
+        "$type": "dimension",
+        "leg": {
+          "$value": "{ref.font.size.12}",
+          "$description": "Tempo, kcal e distância de um trecho.",
+          "$extensions": {
+            "info.bicisampa": {
+              "usage": ["font"]
+            }
+          }
+        },
+        "line": {
+          "$value": "{ref.font.size.14}",
+          "$description": "Código da linha num trecho de ônibus ou trem.",
+          "$extensions": {
+            "info.bicisampa": {
+              "usage": ["font"]
+            }
+          }
+        },
+        "total": {
+          "$value": "{ref.font.size.14}",
+          "$description": "O rótulo \"Total\" da viagem.",
+          "$extensions": {
+            "info.bicisampa": {
+              "usage": ["font"]
+            }
+          }
+        }
+      },
+      "weight": {
+        "$type": "fontWeight",
+        "leg": {
+          "$value": "{ref.font.weight.600}",
+          "$description": "Rótulos de trecho.",
+          "$extensions": {
+            "info.bicisampa": {
+              "usage": ["font"]
+            }
+          }
+        },
+        "strong": {
+          "$value": "{ref.font.weight.800}",
+          "$description": "Código da linha e o total: precisam ler mesmo pequenos.",
+          "$extensions": {
+            "info.bicisampa": {
+              "usage": ["font"]
+            }
+          }
+        }
+      },
+      "tracking": {
+        "$type": "dimension",
+        "leg": {
+          "$value": "{ref.font.tracking.wide}",
+          "$description": "Letras um pouco abertas: o contorno grosso fecha o espaço entre elas.",
+          "$extensions": {
+            "info.bicisampa": {
+              "usage": ["font"]
+            }
+          }
+        }
+      },
+      "badge": {
+        "$type": "typography",
+        "$value": {
+          "fontFamily": "{ref.font.family.system}",
+          "fontSize": "{ref.font.size.10}",
+          "fontWeight": "{ref.font.weight.700}",
+          "letterSpacing": "{ref.font.tracking.none}",
+          "lineHeight": "{ref.font.line-height.none}"
+        },
+        "$description": "Número 1, 2… nos ícones de trecho quando há mais de uma condução do mesmo tipo.",
+        "$extensions": {
+          "info.bicisampa": {
+            "usage": ["font"]
           }
         }
       }
