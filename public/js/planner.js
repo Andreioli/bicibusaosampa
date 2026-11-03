@@ -708,7 +708,7 @@ export function initPlanner({ map, rotatingPane, locate, sheetInsets, railLines,
       if (leg.kind === 'park') {
         L.marker([leg.at.lat, leg.at.lon], {
           pane: 'planPins',
-          icon: L.divIcon({ className: 'plan-park', html: `<span>${icon('parking', 'icon-sm')}</span>`, iconSize: [24, 24], iconAnchor: [12, 12] }),
+          icon: L.divIcon({ className: 'plan-park', html: `<span>${icon('parking', 'icon-sm', 'filled')}</span>`, iconSize: [24, 24], iconAnchor: [12, 12] }),
           keyboard: false,
         }).bindTooltip(`Deixe a bici: ${esc(leg.at.name)}`).addTo(routeLayer);
         continue;

@@ -17,7 +17,7 @@ npm run dev          # wrangler pages dev → http://localhost:8788 (reads SPTRA
 npm test             # node --test: schedule rules, holidays, headings, lanes, bike parking, function helpers
 npm run build:data   # regenerate data files (`-- rail`, `-- bus`, `-- emtu`, `-- parking` or `-- fleet` for one)
 npm run build:tokens # design/tokens/ → public/tokens.css, public/js/tokens.js and the tables in DESIGN.md
-npm run build:icons  # design/icons/ → public/js/icons.js and the icons in index.html (icons:fetch copies new Lucide SVGs)
+npm run build:icons  # design/icons/ → public/js/icons.js and the icons in index.html (icons:fetch copies new SVGs from the icon library)
 node scripts/suggest-lines.mjs [--write]   # compare live rack buses with the expected lines
 node scripts/plan.mjs --from=LAT,LON --to=LAT,LON [--at=…] [--power=suave]   # try the trip planner
 ```

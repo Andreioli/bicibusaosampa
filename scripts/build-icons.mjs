@@ -1,13 +1,17 @@
 #!/usr/bin/env node
-// Builds the interface icons from design/icons/ (vocabulary.json + the Lucide SVGs copied
-// into lucide/) into public/js/icons.js, and writes the icons of public/index.html in
-// place, so the page shows them before any script runs. Both are generated from the
-// vocabulary: edit it, not them.
+// Builds the interface icons from design/icons/ (vocabulary.json + the SVGs copied into
+// <library>/outline and <library>/filled) into public/js/icons.js, and writes the icons of
+// public/index.html in place, so the page shows them before any script runs. Both are
+// generated from the vocabulary: edit it, not them.
 //
 // Usage: node scripts/build-icons.mjs   (npm run build:icons)
 //
-// In index.html, <i data-icon="menu"></i> (optionally with class="icon-lg") becomes the
-// inline <svg>; a later run rewrites that <svg> again. In JavaScript: icon('menu').
+// In index.html, <i data-icon="bus"></i> becomes the inline <svg>; add class="icon-sm" or
+// data-style="filled" as needed. A later run rewrites that <svg> again. In JavaScript:
+// icon('bus'), icon('bus', 'icon-sm'), icon('bus', '', 'filled').
+//
+// Nothing here is specific to one library: each SVG keeps its own drawing attributes
+// (viewBox, fill, stroke…), so outline and filled styles, or another library, just work.
 
 import { readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
@@ -18,44 +22,65 @@ const ICONS = join(ROOT, 'design', 'icons');
 export const VOCABULARY = join(ICONS, 'vocabulary.json');
 export const OUT_JS = join(ROOT, 'public', 'js', 'icons.js');
 export const INDEX_HTML = join(ROOT, 'public', 'index.html');
+export const STYLES = ['outline', 'filled'];
 
-// Lucide's own drawing attributes, the same on every icon: strokes in the text colour,
-// rounded ends and corners.
-const ATTRS = 'viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"';
+// The attributes that say how an icon is drawn. Size and class come from us.
+const DRAWING = ['viewBox', 'fill', 'stroke', 'stroke-width', 'stroke-linecap', 'stroke-linejoin'];
 
-/** Meaning → the SVG's inner markup, in vocabulary order. */
-export function loadIcons() {
-  const vocabulary = JSON.parse(readFileSync(VOCABULARY, 'utf8'));
-  return Object.fromEntries(Object.entries(vocabulary.icons).map(([meaning, { lucide }]) => {
-    const svg = readFileSync(join(ICONS, 'lucide', `${lucide}.svg`), 'utf8');
-    const inner = svg.match(/<svg[^>]*>([\s\S]*)<\/svg>/)?.[1];
-    if (!inner) throw new Error(`${lucide}.svg: no <svg>`);
-    return [meaning, inner.replace(/\s*\n\s*/g, '').replace(/\s+\/>/g, '/>').trim()];
-  }));
+function readSvg(file) {
+  const svg = readFileSync(file, 'utf8');
+  const [, open, inner] = svg.match(/<svg([^>]*)>([\s\S]*)<\/svg>/) ?? [];
+  if (inner === undefined) throw new Error(`${file}: no <svg>`);
+  const attrs = DRAWING.flatMap((a) => {
+    const m = open.match(new RegExp(`\\s${a}="([^"]*)"`));
+    return m ? [`${a}="${m[1]}"`] : [];
+  }).join(' ');
+  const body = inner
+    .replace(/<!--[\s\S]*?-->/g, '')
+    .replace(/<path stroke="none" d="M0 0h24v24H0z" fill="none"\s*\/>/g, '') // Tabler's invisible bounding box
+    .replace(/\s*\n\s*/g, '').replace(/\s+\/>/g, '/>').trim();
+  return { attrs, body };
 }
 
-const svg = (icons, name, extra = '') => {
-  if (!icons[name]) throw new Error(`unknown icon "${name}" (design/icons/vocabulary.json)`);
-  return `<svg class="icon${extra ? ` ${extra}` : ''}" data-icon="${name}" ${ATTRS}>${icons[name]}</svg>`;
-};
+/** The vocabulary with every style's drawing: { meaning: { outline: {attrs, body}, filled? } }. */
+export function loadIcons() {
+  const vocabulary = JSON.parse(readFileSync(VOCABULARY, 'utf8'));
+  const dir = join(ICONS, vocabulary.library);
+  return Object.fromEntries(Object.entries(vocabulary.icons).map(([meaning, { name, filled }]) => [meaning, {
+    outline: readSvg(join(dir, 'outline', `${name}.svg`)),
+    ...(filled ? { filled: readSvg(join(dir, 'filled', `${filled}.svg`)) } : {}),
+  }]));
+}
+
+function svg(icons, name, extra = '', style = 'outline') {
+  const d = icons[name]?.[style];
+  if (!d) throw new Error(icons[name] ? `icon "${name}" has no ${style} style` : `unknown icon "${name}" (design/icons/vocabulary.json)`);
+  const styleAttr = style === 'outline' ? '' : ` data-style="${style}"`;
+  return `<svg class="icon${extra ? ` ${extra}` : ''}" data-icon="${name}"${styleAttr} ${d.attrs} aria-hidden="true">${d.body}</svg>`;
+}
 
 /** index.html with every icon placeholder (or previously written icon) drawn from the vocabulary. */
 export function updateIndexIcons(html, icons) {
   return html
-    .replace(/<i data-icon="([\w-]+)"(?: class="([^"]*)")?><\/i>/g, (m, name, extra) => svg(icons, name, extra))
-    .replace(/<svg class="icon(?: ([^"]*))?" data-icon="([\w-]+)"[^>]*>[\s\S]*?<\/svg>/g, (m, extra, name) => svg(icons, name, extra));
+    .replace(/<i data-icon="([\w-]+)"((?: (?:class|data-style)="[^"]*")*)><\/i>/g, (m, name, rest) =>
+      svg(icons, name, rest.match(/class="([^"]*)"/)?.[1], rest.match(/data-style="([^"]*)"/)?.[1]))
+    .replace(/<svg class="icon(?: ([^"]*))?" data-icon="([\w-]+)"(?: data-style="([\w-]+)")?[^>]*>[\s\S]*?<\/svg>/g, (m, extra, name, style) =>
+      svg(icons, name, extra, style));
 }
 
 export function buildIconsJs(icons) {
   return `// Generated by scripts/build-icons.mjs from design/icons/. Do not edit: see DESIGN.md.
-// Lucide icons (ISC licence, design/icons/lucide/LICENSE), by meaning.
+// The interface icons by meaning, in each style the vocabulary has (outline, filled).
+// Licence of the drawings: design/icons/<library>/LICENSE.
 
-const PATHS = ${JSON.stringify(icons, null, 2)};
+const ICONS = ${JSON.stringify(icons, null, 2)};
 
 /** The icon for a meaning, as an inline SVG string. Size comes from CSS (.icon, .icon-sm, .icon-lg). */
-export function icon(name, extra = '') {
-  if (!PATHS[name]) throw new Error(\`unknown icon "\${name}"\`);
-  return \`<svg class="icon\${extra ? \` \${extra}\` : ''}" data-icon="\${name}" ${ATTRS}>\${PATHS[name]}</svg>\`;
+export function icon(name, extra = '', style = 'outline') {
+  const d = ICONS[name]?.[style];
+  if (!d) throw new Error(\`no icon "\${name}" in style \${style}\`);
+  const styleAttr = style === 'outline' ? '' : \` data-style="\${style}"\`;
+  return \`<svg class="icon\${extra ? \` \${extra}\` : ''}" data-icon="\${name}"\${styleAttr} \${d.attrs} aria-hidden="true">\${d.body}</svg>\`;
 }
 `;
 }

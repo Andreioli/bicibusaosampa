@@ -341,11 +341,17 @@ footer a { color: var(--ui-accent-default); }
 
 /* ------------------------------------------------------------ trip planner */
 
-/* Interface icons (js/icons.js, Lucide): drawn in the text colour, sized by the icon scale. */
+/* Interface icons (js/icons.js, design/icons/vocabulary.json): text colour, icon scale. */
 .icon { flex: none; display: inline-block; width: var(--ui-size-icon-md); height: var(--ui-size-icon-md); vertical-align: middle; }
 .icon-sm { width: var(--ui-size-icon-sm); height: var(--ui-size-icon-sm); }
 .icon-lg { width: var(--ui-size-icon-lg); height: var(--ui-size-icon-lg); }
 button .icon, summary .icon { pointer-events: none; }
+/* An icon in both styles: outline at rest, filled when its control is on (the chosen mode,
+   a map button that's pressed). */
+.icon-swap { display: contents; }
+.icon-swap > [data-style="filled"] { display: none; }
+:is(input:checked + span, [aria-pressed="true"]) .icon-swap > [data-style="filled"] { display: inline-block; }
+:is(input:checked + span, [aria-pressed="true"]) .icon-swap > :not([data-style]) { display: none; }
 
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 
@@ -423,7 +429,7 @@ button .icon, summary .icon { pointer-events: none; }
 .plan-modes { display: flex; gap: var(--ui-space-gap-xs); margin: var(--ui-space-gap-sm) 0 var(--ui-space-gap-xs); padding: 0; border: 0; }
 .plan-modes label { flex: 1 1 0; min-width: 0; }
 .plan-modes input { position: absolute; opacity: 0; }
-.plan-modes span {
+.plan-modes label > span {
   display: grid;
   place-items: center;
   height: 100%;
@@ -436,7 +442,7 @@ button .icon, summary .icon { pointer-events: none; }
   cursor: pointer;
 }
 .plan-profiles { margin-top: var(--ui-space-gap-2xs); }
-.plan-profiles span { min-height: var(--ui-size-touch); padding: var(--ui-space-inset-sm) var(--ui-space-inset-2xs); grid-auto-flow: column; gap: 0; align-content: center; justify-content: center; padding-inline: var(--ui-space-inset-2xs); color: var(--ui-content-primary); }
+.plan-profiles label > span { min-height: var(--ui-size-touch); padding: var(--ui-space-inset-sm) var(--ui-space-inset-2xs); grid-auto-flow: column; gap: 0; align-content: center; justify-content: center; padding-inline: var(--ui-space-inset-2xs); color: var(--ui-content-primary); }
 /* Up to three modes side by side in a quarter of the menu: the small icon size. */
 .plan-profiles .icon { width: var(--ui-size-icon-sm); height: var(--ui-size-icon-sm); }
 .plan-modes input:checked + span { border-color: var(--ui-accent-default); background: color-mix(in srgb, var(--ui-accent-default) 14%, transparent); font-weight: var(--ui-font-weight-strong); }

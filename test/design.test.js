@@ -229,7 +229,7 @@ const INLINE_OK = ['background', 'width', 'height', 'transform', 'fill'];
 
 test('inline styles in JavaScript only set runtime values', () => {
   for (const f of readdirSync(join(ROOT, 'public/js')).filter((x) => x.endsWith('.js'))) {
-    for (const [, style] of read(`public/js/${f}`).matchAll(/style="([^"]*)"/g)) {
+    for (const [, style] of read(`public/js/${f}`).matchAll(/(?<![\w-])style="([^"]*)"/g)) {
       for (const prop of style.split(';').map((d) => d.split(':')[0].trim()).filter(Boolean)) {
         assert.ok(INLINE_OK.includes(prop), `public/js/${f}: inline ${prop} in style="${style}": use a class`);
       }
@@ -261,25 +261,34 @@ test('icons.js and the icons in index.html are up to date (run npm run build:ico
   assert.equal(html, updateIndexIcons(html, icons));
 });
 
-test('every icon used is in the vocabulary, and every icon in the vocabulary is used', () => {
-  const used = new Set();
+test('every icon used is in the vocabulary, in a style it has, and every icon is used', () => {
+  const used = new Map(); // meaning → styles
+  const use = (name, style = 'outline') => used.set(name, new Set([...(used.get(name) ?? []), style]));
   for (const file of uiFiles()) {
     const text = read(file);
-    for (const [, name] of text.matchAll(/\bicon\('([\w-]+)'/g)) used.add(name);
-    for (const [, name] of text.matchAll(/data-icon="([\w-]+)"/g)) used.add(name);
+    for (const [, name, style] of text.matchAll(/\bicon\('([\w-]+)'(?:,\s*'[^']*'(?:,\s*'([\w-]+)')?)?/g)) use(name, style);
+    for (const [, name, style] of text.matchAll(/data-icon="([\w-]+)"(?: data-style="([\w-]+)")?/g)) use(name, style);
     // MODE_ICON in planner.js maps leg kinds through a list.
-    for (const [, list] of text.matchAll(/\[([^\]]*)\]\.map\(\(m\) => \[m, icon\(m\)\]\)/g)) for (const [, n] of list.matchAll(/'([\w-]+)'/g)) used.add(n);
+    for (const [, list] of text.matchAll(/\[([^\]]*)\]\.map\(\(m\) => \[m, icon\(m\)\]\)/g)) for (const [, n] of list.matchAll(/'([\w-]+)'/g)) use(n);
   }
-  for (const name of used) assert.ok(vocabulary.icons[name], `icon "${name}" is not in design/icons/vocabulary.json`);
+  for (const [name, styles] of used) {
+    const entry = vocabulary.icons[name];
+    assert.ok(entry, `icon "${name}" is not in design/icons/vocabulary.json`);
+    if (styles.has('filled')) assert.ok(entry.filled, `icon "${name}" is used filled, but the vocabulary has no filled drawing for it`);
+  }
   for (const name of Object.keys(vocabulary.icons)) assert.ok(used.has(name), `icon "${name}" is in the vocabulary but nothing uses it`);
 });
 
-test('the Lucide copies are exactly the vocabulary, at its version, with the licence', () => {
-  const files = readdirSync(join(ROOT, 'design/icons/lucide'));
-  assert.ok(files.includes('LICENSE'), 'design/icons/lucide/LICENSE is missing (npm run icons:fetch)');
-  const wanted = new Set(Object.values(vocabulary.icons).map((i) => `${i.lucide}.svg`));
-  assert.deepEqual(files.filter((f) => f.endsWith('.svg')).sort(), [...wanted].sort());
-  for (const f of wanted) assert.ok(read(`design/icons/lucide/${f}`).includes(`lucide-static v${vocabulary.lucide}`), `${f} is not Lucide ${vocabulary.lucide} (npm run icons:fetch)`);
+test('the copied SVGs are exactly those of the vocabulary, from its library and version, with the licence', () => {
+  const dir = `design/icons/${vocabulary.library}`;
+  assert.deepEqual(readdirSync(join(ROOT, 'design/icons')).sort(), [vocabulary.library, 'vocabulary.json'].sort(), 'only the current library is copied (npm run icons:fetch)');
+  assert.deepEqual(JSON.parse(read(`${dir}/source.json`)), { library: vocabulary.library, version: vocabulary.version }, 'copies are from another version (npm run icons:fetch)');
+  assert.ok(read(`${dir}/LICENSE`).length > 0, `${dir}/LICENSE is missing`);
+  for (const style of ['outline', 'filled']) {
+    const key = style === 'outline' ? 'name' : 'filled';
+    const wanted = [...new Set(Object.values(vocabulary.icons).map((i) => i[key]).filter(Boolean))].map((n) => `${n}.svg`).sort();
+    assert.deepEqual(readdirSync(join(ROOT, dir, style)).sort(), wanted, `${dir}/${style} (npm run icons:fetch)`);
+  }
 });
 
 test('no emoji or text glyphs as icons in the interface', () => {

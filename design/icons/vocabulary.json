@@ -1,105 +1,120 @@
 {
-  "$description": "Os ícones da interface, por significado. O código pede o significado (icon('swap')), nunca o nome do Lucide: trocar o desenho de um significado é mudar uma linha aqui. Os ícones do mapa (ônibus, bicicletário, ponto, estação, os do trajeto) não estão aqui: são simbologia nossa, desenhada em app.js e planner.js.",
-  "lucide": "1.59.0",
+  "$description": "Os ícones da interface, por significado. O código pede o significado (icon(\"swap\")), nunca o nome na biblioteca: trocar o desenho de um significado é mudar uma linha aqui, e trocar de biblioteca é mudar library, version e os nomes. name é o desenho em contorno; filled, quando existe, o preenchido (mapa e estado selecionado). Os ícones do mapa com forma própria (ônibus ao vivo, bicicletário, estações) não estão aqui.",
+  "library": "tabler",
+  "version": "3.49.0",
   "icons": {
     "menu": {
-      "lucide": "menu",
+      "name": "menu-2",
       "description": "Abrir e fechar o menu."
     },
     "layers": {
-      "lucide": "layers",
+      "name": "stack-2",
+      "filled": "stack-2",
       "description": "Camadas e legenda do mapa."
     },
     "locate": {
-      "lucide": "navigation",
+      "name": "navigation",
+      "filled": "navigation",
       "description": "Minha localização: o botão do mapa, a origem no planejador e a sugestão nos campos de busca."
     },
     "zoom-in": {
-      "lucide": "plus",
+      "name": "plus",
       "description": "Aproximar o mapa."
     },
     "zoom-out": {
-      "lucide": "minus",
+      "name": "minus",
       "description": "Afastar o mapa."
     },
     "bus": {
-      "lucide": "bus-front",
+      "name": "bus",
+      "filled": "bus",
       "description": "Ônibus: modos do planejador e trechos de ônibus."
     },
     "bike": {
-      "lucide": "bike",
+      "name": "bike",
+      "filled": "bike",
       "description": "Bicicleta: modos do planejador e trechos pedalando."
     },
     "parking": {
-      "lucide": "square-parking",
+      "name": "parking",
+      "filled": "square-letter-p",
       "description": "Bicicletário: deixar a bici e seguir sem ela."
     },
     "walk": {
-      "lucide": "footprints",
+      "name": "walk",
       "description": "Trecho a pé e baldeação."
     },
     "metro": {
-      "lucide": "train-front-tunnel",
-      "description": "Trecho de metrô."
+      "name": "train",
+      "filled": "train",
+      "description": "Trecho de metrô. O Tabler não tem metrô: usa o mesmo desenho do trem até termos um melhor."
     },
     "train": {
-      "lucide": "train-front",
+      "name": "train",
+      "filled": "train",
       "description": "Trecho de trem (CPTM e linhas de superfície)."
     },
     "station": {
-      "lucide": "door-open",
+      "name": "door-enter",
       "description": "Entrar ou sair de uma estação."
     },
     "add": {
-      "lucide": "plus",
+      "name": "plus",
       "description": "Acrescentar: uma parada no trajeto."
     },
     "swap": {
-      "lucide": "arrow-up-down",
+      "name": "arrows-up-down",
       "description": "Inverter origem e destino."
     },
     "fastest": {
-      "lucide": "timer",
+      "name": "clock-hour-4",
+      "filled": "clock-hour-4",
       "description": "Prioridade: chegar mais rápido."
     },
     "balanced": {
-      "lucide": "scale",
+      "name": "scale",
+      "filled": "scale",
       "description": "Prioridade: equilíbrio entre tempo e esforço."
     },
     "least-effort": {
-      "lucide": "battery-full",
+      "name": "battery-4",
+      "filled": "battery-4",
       "description": "Prioridade: gastar menos energia."
     },
     "options": {
-      "lucide": "sliders-horizontal",
+      "name": "adjustments-horizontal",
       "description": "Mais opções do planejador."
     },
     "expand": {
-      "lucide": "chevron-down",
+      "name": "chevron-down",
       "description": "Abrir e fechar uma seção; gira quando aberta."
     },
     "warning": {
-      "lucide": "triangle-alert",
+      "name": "alert-triangle",
+      "filled": "alert-triangle",
       "description": "Aviso: linha fora da rota habitual, operação alterada."
     },
     "accessible": {
-      "lucide": "accessibility",
+      "name": "accessible",
+      "filled": "accessible",
       "description": "Ônibus acessível."
     },
     "home": {
-      "lucide": "house",
+      "name": "home",
+      "filled": "home",
       "description": "Lugar salvo como Casa."
     },
     "work": {
-      "lucide": "briefcase",
+      "name": "briefcase",
+      "filled": "briefcase",
       "description": "Lugar salvo como Trabalho."
     },
     "recent": {
-      "lucide": "history",
+      "name": "history",
       "description": "Busca recente."
     },
     "remove": {
-      "lucide": "x",
+      "name": "x",
       "description": "Remover uma parada."
     }
   }
