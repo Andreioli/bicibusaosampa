@@ -245,6 +245,9 @@ h2 { margin: var(--ui-space-gap-lg) 0 var(--ui-space-gap-sm); font: var(--ui-typ
 .layer-rows label { display: flex; gap: var(--ui-space-gap-sm); align-items: center; min-height: var(--ui-size-touch); cursor: pointer; }
 .layer-rows input[type="checkbox"] { width: var(--ui-size-icon-lg); height: var(--ui-size-icon-lg); margin: 0; accent-color: var(--ui-accent-default); }
 .layer-rows .base-row { display: grid; grid-template-columns: 1fr auto; align-items: center; column-gap: var(--ui-space-gap-sm); }
+.layer-rows .base-row[data-off] input[type="range"], .layer-rows .base-row[data-off] output { display: none; }
+.layer-rows .base-row label span { display: flex; flex-direction: column; }
+.layer-rows .base-row small { font: var(--ui-type-body-sm); }
 .layer-rows .base-row label { grid-column: 1 / -1; }
 .layer-rows .base-row input[type="range"] { margin: calc(var(--ui-space-gap-xs) * -1) 0 var(--ui-space-gap-xs) calc(var(--ui-size-icon-lg) + var(--ui-space-gap-sm)); width: calc(100% - var(--ui-size-icon-lg) - var(--ui-space-gap-sm)); accent-color: var(--ui-accent-default); }
 .layer-rows .base-row output { margin-top: calc(var(--ui-space-gap-xs) * -1); font: var(--ui-type-body-sm); color: var(--ui-content-secondary); font-variant-numeric: tabular-nums; min-width: 3em; text-align: right; }
@@ -672,3 +675,6 @@ button .icon, summary .icon { pointer-events: none; }
 @media (max-width: 640px) {
   #panel.peek { max-height: min(45dvh, 300px); }
 }
+
+/* planner quick fixes */
+.plan-coords { color: var(--ui-content-secondary); font: var(--ui-type-body-sm); }

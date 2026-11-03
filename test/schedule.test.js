@@ -89,3 +89,9 @@ test('bus bike windows (Portaria SMT 32/2016)', () => {
   assert.match(b('2026-10-03T10:00').detail, /14:00/);
   assert.equal(b('2026-10-04T10:00').status, 'ok'); // Sunday
 });
+
+test('a closed line says why when its service has a note', () => {
+  const s = status('6', '2026-11-01T12:00:00'); // Sunday: Linha 6 is closed
+  assert.equal(s.status, 'closed');
+  assert.match(s.detail, /^Fechada · operação assistida, dias úteis das 10h às 15h · abre /);
+});

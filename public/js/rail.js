@@ -29,5 +29,13 @@ export function railStatus(line, bikes, live, date = new Date()) {
       return { ...result, live: [live.status, live.description].filter(Boolean).join(': ') };
     }
   }
+  // Say why a closed line is closed: "Fechada · operação assistida, dias úteis… · abre 10:00".
+  // A service with `until` is a temporary extension (Metrô's 24h Saturdays): its note
+  // describes the extra hours, not why the line is closed now.
+  if (result.status === 'closed' && service.note && !service.until) {
+    const why = service.note.replace(/^./, (c) => c.toLowerCase()).replace(': ', ', ');
+    const detail = result.detail.replace(/^Fechada/, `Fechada · ${why}`);
+    return { ...result, detail, note: service.note };
+  }
   return { ...result, note: service.note };
 }

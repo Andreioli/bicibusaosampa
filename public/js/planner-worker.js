@@ -10,6 +10,7 @@
 //   failure                                            → { kind: 'error', message }
 
 import { liveTrips } from './live-trips.js';
+import { applyDisplayNames } from './names.js';
 import { loadNetwork, plan, queryDay } from './raptor.js';
 import { decodeStreets } from './streets.js';
 
@@ -70,10 +71,17 @@ async function getStreets() {
 let network = null;
 function getNetwork() {
   network ??= Promise.all([
-    ...['routing/transit.json', 'rail-lines.json', 'bike-buses.json', 'bike-parking.geojson', 'stations.json'].map((n) => getJson(data(n))),
+    ...['routing/transit.json', 'rail-lines.json', 'bike-buses.json', 'bike-parking.geojson', 'stations.json', 'rail.geojson'].map((n) => getJson(data(n))),
     getStreets(),
   ])
-    .then(([transit, railLines, bikeBuses, parking, stations, streets]) => loadNetwork({ transit, railLines, bikeBuses, parking, stations, streets }))
+    .then(([transit, railLines, bikeBuses, parking, stations, railGeo, streets]) => {
+      const net = loadNetwork({ transit, railLines, bikeBuses, parking, stations, streets });
+      // After loadNetwork: stations.json matches the GTFS names, the planner shows these.
+      const refs = new Map();
+      for (const p of net.patterns) if (p.mode !== 'bus') for (const s of p.stops) (refs.get(s) ?? refs.set(s, new Set()).get(s)).add(p.rail);
+      applyDisplayNames(net.stops.name, net.stops.lat, net.stops.lon, refs, railGeo);
+      return net;
+    })
     .catch((err) => { network = null; throw err; });
   return network;
 }

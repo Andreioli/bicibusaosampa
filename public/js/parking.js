@@ -7,10 +7,18 @@ import { spParts } from './time.js';
 
 export const ACCESS = {
   livre: { label: 'Livre', detail: 'Gratuito e sem cadastro.' },
-  cadastro: { label: 'Com cadastro', detail: 'Gratuito, com cadastro no local: leve um documento com foto (a CPTM pede também comprovante de residência).' },
+  cadastro: { label: 'Com cadastro', detail: 'Gratuito, com cadastro no local: leve um documento com foto.' },
   pago: { label: 'Pago', detail: 'Cobra pelo uso.' },
   clientes: { label: 'Só clientes', detail: 'Reservado a clientes ou usuários autorizados.' },
 };
+
+/** What the sign-up needs depends on the operator: only CPTM also asks for proof of address. */
+export function accessDetail(access, operator) {
+  if (access === 'cadastro' && operator === 'CPTM') {
+    return 'Gratuito, com cadastro no local: leve um documento com foto e um comprovante de residência.';
+  }
+  return ACCESS[access].detail;
+}
 
 function until(end, now) {
   const p = spParts(end);

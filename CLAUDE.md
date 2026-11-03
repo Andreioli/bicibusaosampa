@@ -8,7 +8,8 @@ the site.
 It's the first piece of a planned *bicycling digital twin* of São Paulo: a PWA (later
 native apps) for everyday cyclists, aggregating many stakeholders' data, with
 intermodal routing (bike + bus + train) and feedback later. Favour mobile-friendly,
-light, reusable-data choices.
+light, reusable-data choices. Improvements with a chosen direction but not built yet are
+in `ROADMAP.md`; check it before starting one, and remove the item when it lands.
 
 ## Commands
 
@@ -63,6 +64,8 @@ append `window.__map = map;`.
     - The map corner attribution is off; credits are in the footer of the Linhas tab.
   - Pure modules, imported by the tests too:
     - `time.js`: São Paulo time and holidays.
+    - `names.js`: display names of stops (official station names from rail.geojson, title
+      case for the rest; the GTFS casing is odd).
     - `schedule.js`: time-window engine.
     - `rail.js`: line status = timetable plus live override.
     - `heading.js`: bus direction of travel.

@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 
 import { parseOpeningHours } from '../scripts/opening-hours.mjs';
 import { buildParking, fromGeoSampa, fromOsm, titleCase } from '../scripts/parking.mjs';
-import { parkingStatus } from '../public/js/parking.js';
+import { accessDetail, parkingStatus } from '../public/js/parking.js';
 
 // São Paulo is UTC-3 all year.
 const sp = (iso) => new Date(`${iso}-03:00`);
@@ -88,4 +88,12 @@ test('parkingStatus says whether it is open now', () => {
   assert.match(parkingStatus({ kind: 'bicicletario', access: 'cadastro' }).detail, /estação ou terminal/);
   assert.equal(parkingStatus({ kind: 'paraciclo', access: 'livre' }).open, null);
   assert.equal(parkingStatus({ kind: 'paraciclo', access: 'livre' }).colorKey, 'livre');
+});
+
+test('accessDetail asks for proof of address only at CPTM', () => {
+  assert.match(accessDetail('cadastro', 'CPTM'), /comprovante de residência/);
+  for (const op of ['Metrô', 'Tembici', 'Socicam', 'ViaQuatro', undefined]) {
+    assert.equal(accessDetail('cadastro', op), 'Gratuito, com cadastro no local: leve um documento com foto.');
+  }
+  assert.equal(accessDetail('livre', 'CPTM'), 'Gratuito e sem cadastro.');
 });

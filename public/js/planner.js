@@ -147,7 +147,17 @@ export function initPlanner({ map, rotatingPane, locate, sheetInsets, railLines,
   // destination and the previous destination turns into a stop.
   let stops = [null, null];
   let markers = [];
-  const ROLE = { from: 'Origem', via: 'Parada', to: 'Destino' };
+  const ROLE = { from: 'Origem', via: 'Ponto', to: 'Destino' };
+  // "Origem", "Ponto 1", "Destino": what a point is called before it has a name.
+  const roleName = (i) => (role(i) === 'via' ? `Ponto ${i}` : ROLE[role(i)]);
+  // A point's name and, for points that came from a tap or a link, its coordinates:
+  // the street name once geocoded, else its role. Searched and saved places have no coords.
+  function placeParts(p, i) {
+    if (!p.geo) return { name: p.label, coords: '' };
+    return { name: p.name ?? roleName(i), coords: `(${coords(p)})` };
+  }
+  const placeText = (p, i) => { const { name, coords: c } = placeParts(p, i); return c ? `${name} ${c}` : name; };
+  const placeHtml = (p, i) => { const { name, coords: c } = placeParts(p, i); return `${esc(name)}${c ? ` <span class="plan-coords">${esc(c)}</span>` : ''}`; };
   const role = (i) => (i === 0 ? 'from' : i === stops.length - 1 ? 'to' : 'via');
   const pinText = (i) => ({ from: 'A', to: 'B' }[role(i)] ?? String(i));
 
@@ -171,7 +181,7 @@ export function initPlanner({ map, rotatingPane, locate, sheetInsets, railLines,
         .addTo(map);
       const box = document.createElement('div');
       box.className = 'plan-menu';
-      box.innerHTML = `<b>${esc(ROLE[role(i)])}</b><button type="button" data-a="remove">Remover</button>
+      box.innerHTML = `<b>${esc(roleName(i))}</b><button type="button" data-a="remove">Remover</button>
         <button type="button" data-a="Casa">${icon('home', 'icon-sm')} Casa</button><button type="button" data-a="Trabalho">${icon('work', 'icon-sm')} Trabalho</button>`;
       box.addEventListener('click', (e) => {
         const a = e.target.closest('button')?.dataset.a;
@@ -194,25 +204,28 @@ export function initPlanner({ map, rotatingPane, locate, sheetInsets, railLines,
         <div class="plan-search">
           <input type="search" enterkeyhint="search" autocomplete="off" spellcheck="false"
             role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="plan-suggest-${i}"
-            aria-label="${ROLE[role(i)]}" placeholder="Buscar ${ROLE[role(i)].toLowerCase()}…" value="${esc(p?.label ?? '')}">
+            aria-label="${ROLE[role(i)]}" placeholder="Buscar ${ROLE[role(i)].toLowerCase()}…" value="${esc(p ? placeText(p, i) : '')}">
           <ul class="plan-suggest" id="plan-suggest-${i}" role="listbox" aria-label="Sugestões" hidden></ul>
         </div>
         ${i === 0 ? `<button type="button" class="plan-icon-btn plan-gps" aria-label="Sair da minha localização" title="Minha localização">${icon('locate')}</button>` : ''}
-        ${role(i) === 'via' ? `<button type="button" class="plan-icon-btn plan-remove" aria-label="Remover parada" title="Remover parada">${icon('remove')}</button>` : ''}
+        ${role(i) === 'via' ? `<button type="button" class="plan-icon-btn plan-remove" aria-label="Remover ponto" title="Remover ponto">${icon('remove')}</button>` : ''}
       </li>`).join('');
   }
 
+  // A point with no name of its own (map tap, shared link): keeps its coordinates and
+  // takes the street name once the reverse lookup answers.
+  function nameByLocation(p) {
+    p.geo = true;
+    placeName(p.lat, p.lon).then((name) => {
+      if (name && stops.includes(p)) { p.name = name; renderStops(); renderSummary(); if (journeys.length && expanded) renderList(); }
+    });
+  }
   const coords = (p) => `${p.lat.toFixed(4)}, ${p.lon.toFixed(4)}`;
 
   function setStop(i, point, { label, auto = false } = {}) {
     const p = { lat: point.lat, lon: point.lon, label: label ?? point.label ?? null };
     stops[i] = p;
-    if (!p.label) {
-      p.label = coords(p);
-      placeName(p.lat, p.lon).then((name) => {
-        if (name && stops[i] === p) { p.label = name; renderStops(); renderSummary(); }
-      });
-    }
+    if (!p.label) nameByLocation(p);
     syncMarkers();
     renderStops();
     if (!auto) ensureLoaded();
@@ -236,7 +249,7 @@ export function initPlanner({ map, rotatingPane, locate, sheetInsets, railLines,
     setStop(i, point);
     navigator.vibrate?.(12);
     // A stray tap while exploring the map shouldn't cost anything: offer to undo it.
-    toast(`${ROLE[role(i)]} ${role(i) === 'to' ? 'marcado' : 'marcada'} no mapa`, {
+    toast(`${ROLE[role(i)]} ${role(i) === 'from' ? 'marcada' : 'marcado'} no mapa`, {
       action: { label: 'Desfazer', run: () => { stops = before; syncMarkers(); renderStops(); update(); } },
     });
   }
@@ -328,7 +341,7 @@ export function initPlanner({ map, rotatingPane, locate, sheetInsets, railLines,
   const recents = () => { try { return JSON.parse(recall('planRecent') ?? '[]'); } catch { return []; } };
   function savePlace(name, p) {
     if (!p) return;
-    remember('planPlaces', JSON.stringify({ ...places(), [name]: { lat: p.lat, lon: p.lon, label: p.label } }));
+    remember('planPlaces', JSON.stringify({ ...places(), [name]: { lat: p.lat, lon: p.lon, label: p.geo ? (p.name ?? coords(p)) : p.label } }));
   }
   function rememberRecent(r) {
     const list = [r, ...recents().filter((x) => x.label !== r.label)].slice(0, 5);
@@ -441,9 +454,9 @@ export function initPlanner({ map, rotatingPane, locate, sheetInsets, railLines,
   function renderSummary() {
     const pts = stops.filter(Boolean);
     const first = pts[0], last = pts.at(-1), between = pts.length - 2;
-    const row = (p) => `<span class="plan-od-row"><span class="pin ${role(stops.indexOf(p))}" aria-hidden="true">${pinText(stops.indexOf(p))}</span><span class="plan-od-label">${esc(p.label)}</span></span>`;
+    const row = (p) => `<span class="plan-od-row"><span class="pin ${role(stops.indexOf(p))}" aria-hidden="true">${pinText(stops.indexOf(p))}</span><span class="plan-od-label">${placeHtml(p, stops.indexOf(p))}</span></span>`;
     summaryEl.innerHTML = `<span class="sr-only">Editar trajeto: </span>${row(first)}${between > 0
-      ? `<span class="plan-od-row via"><span class="pin via" aria-hidden="true">${between}</span><span class="plan-od-label">${between} ${between === 1 ? 'parada' : 'paradas'}</span></span>`
+      ? `<span class="plan-od-row via"><span class="pin via" aria-hidden="true">${between}</span><span class="plan-od-label">${between} ${between === 1 ? 'ponto' : 'pontos'}</span></span>`
       : ''}${row(last)}`;
   }
   function setPlanned(on) {
@@ -510,7 +523,7 @@ export function initPlanner({ map, rotatingPane, locate, sheetInsets, railLines,
   // "Mais opções" shows the current pace and departure, so they don't hide in the fold.
   function syncMoreValue() {
     const parts = [];
-    if (profile() !== 'walk') parts.push(PACES.find(([k]) => k === power.value)?.[1]);
+    if (profile() !== 'walk') parts.push(`Ritmo ${PACES.find(([k]) => k === power.value)?.[1].toLowerCase()} (~${Math.round(flatSpeed(POWER_LEVELS[power.value]) * 3.6)} km/h)`);
     const m = /^\d{4}-(\d\d)-(\d\d)T(\d\d:\d\d)/.exec(at.value);
     parts.push(m ? `saída ${m[2]}/${m[1]} ${m[3]}` : 'saída agora');
     $('#plan-more-value').textContent = `· ${parts.filter(Boolean).join(' · ')}`;
@@ -552,7 +565,7 @@ export function initPlanner({ map, rotatingPane, locate, sheetInsets, railLines,
     const parts = [];
     for (let k = 0; k + 1 < points.length; k++) {
       // Named points, so legs read "até Rua X" instead of "até Destino".
-      const named = (p) => ({ ...p, name: p.label });
+      const named = (p) => ({ ...p, name: placeText(p, stops.indexOf(p)), ptIndex: stops.indexOf(p) });
       reply = await ask({ kind: 'plan', from: named(points[k]), to: named(points[k + 1]), at: start, ...options, profile: profileKey });
       if (id !== searchId) return null;
       if (reply.kind === 'error') return { error: reply.message, journeys: [] };
@@ -647,16 +660,16 @@ export function initPlanner({ map, rotatingPane, locate, sheetInsets, railLines,
     showDurations();
     if (!journeys.length) {
       const failedAt = mode === 'all' ? null : byProfile[mode].failedAt;
-      status.textContent = stopsTrip && failedAt != null ? `Sem opção até a parada ${failedAt + 1}.` : 'Nenhuma opção encontrada.';
+      status.textContent = stopsTrip && failedAt != null ? `Sem opção até o ponto ${failedAt + 1}.` : 'Nenhuma opção encontrada.';
       render();
       return;
     }
     selected = 0;
     expanded = journeys.length === 1; // a trip with stops has one option per mode: open it when alone
     const liveOf = (p) => p !== 'cycle' && byProfile[p].live;
-    const live = !later && (mode === 'all' ? PROFILES.some(liveOf) : liveOf(mode)) ? ' · ônibus ao vivo' : '';
+    const live = !later && (mode === 'all' ? PROFILES.some(liveOf) : liveOf(mode)) ? ' · usa ônibus em tempo real' : '';
     status.textContent = stopsTrip
-      ? `Com ${cache.points - 2} ${cache.points === 3 ? 'parada' : 'paradas'}${live}`
+      ? `Com ${cache.points - 2} ${cache.points === 3 ? 'ponto' : 'pontos'}${live}`
       : `${journeys.length} ${journeys.length === 1 ? 'opção' : 'opções'}${live}`;
     render();
   }
@@ -716,14 +729,14 @@ export function initPlanner({ map, rotatingPane, locate, sheetInsets, railLines,
     }).filter(Boolean).join('<span class="sep" aria-hidden="true">›</span>');
   }
 
-  // Where each ride starts: "Ônibus 11:03 em Jose Maria Lisboa B/C · horário estimado".
+  // Where each ride starts: "Ônibus 11:03 em Jose Maria Lisboa B/C · horário aproximado".
   const NOUN = { metro: 'Metrô', train: 'Trem' };
   function meta(j) {
     const r = j.legs.find((l) => l.kind === 'ride');
     let text;
     if (r) {
       const noun = r.mode === 'bus' ? (r.hold ? 'Seletivo' : 'Ônibus') : NOUN[r.mode] ?? 'Trem';
-      text = `${noun} ${hhmm(r.depart)} em ${esc(r.from.name)}${r.live ? ' · ao vivo' : r.estimated ? ' · horário estimado' : ''}`;
+      text = `${noun} ${hhmm(r.depart)} em ${esc(r.from.name)}${r.live ? ' · ao vivo' : r.estimated ? ' · horário aproximado' : ''}`;
     } else {
       const bikeOnly = j.profile === 'cycle' || j.legs.every((l) => l.kind === 'bike');
       text = `${bikeOnly ? 'Só de bici' : 'A pé'} · ${km(tripMeters(j))}`;
@@ -743,13 +756,15 @@ export function initPlanner({ map, rotatingPane, locate, sheetInsets, railLines,
   function timeline(j) {
     const rows = [];
     let pendingIn = null;
+    // Trip points (origin, stops, destination) show their current name and coordinates.
+    const where = (pt) => (pt.ptIndex != null && stops[pt.ptIndex] ? placeHtml(stops[pt.ptIndex], pt.ptIndex) : esc(pt.name));
     const row = (variant, time, place, what, metaLine, { line = '', node = '', extra = '' } = {}) => ({ variant, time, place, what, metaLine, line, node, extra });
     const html = (r) => `
       <li class="tl tl-${r.variant}">
         <span class="tl-time">${hhmm(r.time)}</span>
         <span class="tl-track" aria-hidden="true">${r.node || '<span class="tl-node"></span>'}<span class="tl-line"${r.line ? ` style="background:${r.line}"` : ''}></span></span>
         <div class="tl-body">
-          <p class="tl-place">${esc(r.place)}</p>
+          <p class="tl-place">${r.place}</p>
           ${r.what ? `<p class="tl-what">${r.what}</p>` : ''}
           ${r.metaLine ? `<p class="tl-meta">${r.metaLine}</p>` : ''}${r.extra}
         </div>
@@ -761,7 +776,7 @@ export function initPlanner({ map, rotatingPane, locate, sheetInsets, railLines,
         if (leg.dir === 'in') pendingIn = leg;
         else if (rows.length) rows[rows.length - 1].extra += stationLine(leg, 'Sair da');
       } else if (leg.kind === 'park') {
-        rows.push(row('park', leg.depart, leg.at.name, 'Deixe a bici aqui', esc(ACCESS[leg.at.access]?.label ?? ''),
+        rows.push(row('park', leg.depart, esc(leg.at.name), 'Deixe a bici aqui', esc(ACCESS[leg.at.access]?.label ?? ''),
           { node: `<span class="tl-node tl-node-park">${icon('parking', 'icon-sm', 'filled')}</span>` }));
       } else if (leg.kind === 'ride') {
         const notes = [];
@@ -770,21 +785,21 @@ export function initPlanner({ map, rotatingPane, locate, sheetInsets, railLines,
         const how = leg.withBike ? (leg.hold ? 'Com a bici: no bagageiro, se houver espaço' : leg.mode === 'bus' ? 'Com a bici: porta traseira' : 'Com a bici: último carro') : '';
         if (how) notes.push(`<p class="tl-note">${icon('bike', 'icon-sm')} ${how}</p>`);
         if (leg.live) notes.push(`<p class="tl-live"><span class="dot inline ok"></span> Ao vivo: ônibus ${esc(leg.live)}</p>`);
-        else if (leg.estimated) notes.push('<p class="tl-live">Horário estimado</p>');
-        rows.push(row('ride', leg.depart, leg.from.name,
+        else if (leg.estimated) notes.push('<p class="tl-live">Horário aproximado</p>');
+        rows.push(row('ride', leg.depart, esc(leg.from.name),
           `${MODE_ICON[leg.mode]} ${rideBadge(leg)}${leg.mode === 'bus' ? '' : ` ${esc(lineName(leg))}`} <span>sentido ${esc(leg.headsign.trim())}</span>`,
           `${minutes(leg.arrive - leg.depart)} · ${leg.stops} ${leg.stops === 1 ? 'parada' : 'paradas'} · desça em ${esc(leg.to.name)}`,
           { line: legColor(leg), extra: notes.join('') }));
       } else if (leg.interchange) {
-        rows.push(row('walk', leg.depart, leg.from.name, `${MODE_ICON.walk} Baldeação até ${esc(leg.to.name)}`,
+        rows.push(row('walk', leg.depart, where(leg.from), `${MODE_ICON.walk} Baldeação até ${where(leg.to)}`,
           `${minutes(leg.arrive - leg.depart)} a pé${leg.withBike ? ', empurrando a bici' : ''} · ${kcal(leg.kcal)}`));
       } else {
         const what = leg.kind === 'bike' ? 'De bici' : leg.withBike ? 'A pé, empurrando a bici' : 'A pé';
-        rows.push(row(leg.kind, leg.depart, leg.from.name, `${MODE_ICON[leg.kind]} ${what}`,
+        rows.push(row(leg.kind, leg.depart, where(leg.from), `${MODE_ICON[leg.kind]} ${what}`,
           `${minutes(leg.arrive - leg.depart)} · ${km(leg.meters)} · ${kcal(leg.kcal)}`));
       }
     }
-    rows.push(row('end', j.arrive, stops.filter(Boolean).at(-1).label, '',
+    rows.push(row('end', j.arrive, placeHtml(stops.filter(Boolean).at(-1), stops.lastIndexOf(stops.filter(Boolean).at(-1))), '',
       `Total: ${minutes(j.arrive - j.depart)} · ${kcal(j.kcal)} · ${km(tripMeters(j))}`));
     return rows.map(html).join('');
   }
@@ -1246,8 +1261,8 @@ export function initPlanner({ map, rotatingPane, locate, sheetInsets, railLines,
     const mode = shared.get('m') ?? 'all';
     for (const r of document.querySelectorAll('input[name="plan-profile"]')) if (r.value === mode) r.checked = true;
     syncPower();
-    stops = sharedPts.map(([lat, lon]) => ({ lat, lon, label: `${lat.toFixed(4)}, ${lon.toFixed(4)}` }));
-    stops.forEach((p) => placeName(p.lat, p.lon).then((name) => { if (name) { p.label = name; renderStops(); renderSummary(); } }));
+    stops = sharedPts.map(([lat, lon]) => ({ lat, lon, label: null }));
+    stops.forEach(nameByLocation);
     syncMarkers();
     renderStops();
     update();

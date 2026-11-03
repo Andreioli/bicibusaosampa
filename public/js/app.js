@@ -3,8 +3,9 @@
 import { headingOfMove, headingOnRoute, iconTransform } from './heading.js';
 import { badgeInk } from './color.js';
 import { DEFAULT_VIEW, initLocate } from './locate.js';
+import { titleCase } from './names.js';
 import { offsetPolylineClass } from './offset.js';
-import { ACCESS, parkingStatus } from './parking.js';
+import { ACCESS, accessDetail, parkingStatus } from './parking.js';
 import { initPlanner } from './planner.js';
 import { railStatus as lineStatus } from './rail.js';
 import { bikeStatus, describeTime } from './schedule.js';
@@ -64,6 +65,10 @@ const map = L.map('map', {
 }).setView(DEFAULT_VIEW.center, DEFAULT_VIEW.zoom);
 /** A pane whose content turns with the map: every vector layer (lines) goes in one. */
 const rotatingPane = (name) => map.createPane(name, map.getPane('rotatePane'));
+// leaflet-rotate puts popupPane inside norotatePane, a stacking context at z 400, so popups
+// were drawn under our panes (415+, planner 640-660). Same coordinates as the map pane,
+// so reparenting it there keeps its own z 700 above every marker and label pane.
+map.getPane('mapPane').appendChild(map.getPane('popupPane'));
 
 // The compass shows while the map is turned; tapping it puts north up again.
 const compass = $('#compass-btn');
@@ -100,7 +105,8 @@ const BASE_MAPS = {
   }),
 };
 // Base maps stack (bottom to top, in this order), each with its own opacity.
-const BASE_LABELS = { osm: 'OpenStreetMap', topo: 'Topográfico colorido' };
+const BASE_LABELS = { osm: 'OpenStreetMap', topo: 'Relevo' };
+const BASE_HINTS = { topo: 'Altitude em cores, do Pedal Hidrográfico' };
 // On phones the relief starts off: two tile layers double the images to load and draw.
 const BASE_DEFAULTS = { osm: { on: true, opacity: 1 }, topo: { on: !matchMedia('(max-width: 640px)').matches, opacity: 0.2 } };
 let baseState = structuredClone(BASE_DEFAULTS);
@@ -176,7 +182,7 @@ function rememberLayers() {
 function buildLayerRows() {
   // Top layer first, as it's drawn.
   const bases = Object.entries(BASE_LABELS).reverse().map(([key, label]) => `
-    <li class="base-row"><label><input type="checkbox" data-base="${key}" ${baseState[key].on ? 'checked' : ''}><span>${label}</span></label>
+    <li class="base-row" ${baseState[key].on ? '' : 'data-off'}><label><input type="checkbox" data-base="${key}" ${baseState[key].on ? 'checked' : ''}><span>${label}${BASE_HINTS[key] ? `<small class="meta">${BASE_HINTS[key]}</small>` : ''}</span></label>
       <input type="range" min="0" max="100" step="5" value="${Math.round(baseState[key].opacity * 100)}" data-opacity="${key}" aria-label="Opacidade: ${label}">
       <output>${Math.round(baseState[key].opacity * 100)}%</output></li>`);
   const overlays = TOGGLES.map(([key, label, layer]) => `
@@ -197,6 +203,7 @@ $('#layer-rows').addEventListener('change', (e) => {
   if (input.dataset.base) {
     const key = input.dataset.base;
     baseState[key].on = input.checked;
+    input.closest('.base-row').toggleAttribute('data-off', !input.checked);
     if (input.checked) BASE_MAPS[key].addTo(map);
     else BASE_MAPS[key].remove();
     rememberBases();
@@ -518,7 +525,7 @@ function busStopPopup({ name, lines }) {
   const rows = codes.map((code) => {
     const line = busLineByCode.get(code);
     const n = state.buses.filter((b) => b.line === code).length;
-    return `<p class="row">${busBadge(code)} ${esc(line?.name ?? '')}${n ? ` · ${n} ${isEmtu(line) ? 'ao vivo' : 'com suporte agora'}` : ''}</p>`;
+    return `<p class="row">${busBadge(code)} ${esc(line?.name ?? '')}${n ? ` · ${n} ${isEmtu(line) ? 'ao vivo' : 'que levam bici agora'}` : ''}</p>`;
   });
   const emtu = codes.some((c) => isEmtu(busLineByCode.get(c)));
   const sptrans = codes.some((c) => !isEmtu(busLineByCode.get(c)));
@@ -588,19 +595,18 @@ function busPopup(bus, s) {
   const rule = emtu
     ? `<p><b>Seletivo EMTU</b>${line?.operator ? ` · ${esc(line.operator)}` : ''}${line?.fare ? ` · ${fare(line.fare)}` : ''}<br>${esc(emtuConfig.rules.summary)}</p>`
     : `<p><span class="dot inline ${s.status}"></span> <b>${STATUS_LABELS[s.status]}</b><br>${esc(s.detail)}</p>`;
-  return `<h3>Ônibus ${esc(bus.prefix)}</h3>
-    <p class="first">${busBadge(bus.line)} → ${esc(bus.to)}</p>
+  return `<h3>${busBadge(bus.line)} → ${esc(titleCase(String(bus.to ?? '').toLowerCase()))}</h3>
     ${line?.name ? `<p class="sub meta">${esc(line.name)}</p>` : ''}
     ${bus.expected ? '' : `<p>${icon('warning', 'icon-sm')} Fora da rota habitual</p>`}
     ${rule}
     ${bus.accessible ? `<p>${icon('accessible', 'icon-sm')} Acessível</p>` : ''}
-    ${seen ? `<p class="first meta">Posição das ${describeTime(seen)}</p>` : ''}
+    <p class="first meta">Carro ${esc(bus.prefix)}${seen ? ` · posição das ${describeTime(seen)}` : ''}</p>
     ${line?.note ? `<p>${icon('warning', 'icon-sm')} ${esc(line.note)}</p>` : ''}`;
 }
 
 function lineItem(code, n) {
   const line = busLineByCode.get(code);
-  const what = isEmtu(line) ? 'ao vivo' : 'com suporte';
+  const what = isEmtu(line) ? 'ao vivo' : 'que levam bici';
   const count = !state.busesLoaded ? 'carregando posições…'
     : n ? `${n} ônibus ${what} agora` : `nenhum ônibus ${what} agora`;
   return `<li data-code="${esc(code)}">
@@ -800,7 +806,7 @@ function parkingPopup(p) {
     : 'GeoSampa (Prefeitura de SP)';
   return `<h3>${esc(p.name ?? (p.kind === 'bicicletario' ? 'Bicicletário' : 'Paraciclo'))}</h3>
     ${facts.length ? `<p class="first meta">${esc(facts.join(' · '))}</p>` : ''}
-    <p><span class="dot inline" style="background:${PARKING_COLORS[p.access]}"></span> <b>${ACCESS[p.access].label}</b><br>${esc(ACCESS[p.access].detail)}${p.biometric ? ' Entrada com biometria.' : ''}</p>
+    <p><span class="dot inline" style="background:${PARKING_COLORS[p.access]}"></span> <b>${ACCESS[p.access].label}</b><br>${esc(accessDetail(p.access, p.operator))}${p.biometric ? ' Entrada com biometria.' : ''}</p>
     ${s.detail ? `<p>${s.open === false ? '<span class="dot inline closed"></span> ' : ''}${esc(s.detail)}</p>` : ''}
     <p class="meta source">Fonte: ${source}</p>`;
 }
