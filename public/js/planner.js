@@ -1,13 +1,14 @@
 // Trip planner panel: origin and destination on the map, mode, pace and departure time,
 // and the journeys from planner-worker.js, listed in the panel and drawn on the map.
 
+import { badgeInk } from './color.js';
 import { placeName, searchPlaces } from './geocode.js';
 import { ACCESS } from './parking.js';
 import { balance, DEFAULT_TIME_WEIGHT, flatSpeed, POWER_LEVELS, TIME_WEIGHTS } from './raptor.js';
 import { spParts } from './time.js';
 import { icon } from './icons.js';
 import { tokens } from './tokens.js';
-import { toast } from './ui.js';
+import { activeTab, selectTab, toast } from './ui.js';
 
 const PACES = [
   ['suave', 'Suave'],
@@ -42,6 +43,7 @@ function recall(key) {
  */
 export function initPlanner({ map, rotatingPane, locate, sheetInsets, railLines, getBuses, focusLines }) {
   const details = $('#plan-details');
+  const od = $('#plan-od');
   const status = $('#plan-status');
   const results = $('#plan-results');
   const stopsList = $('#plan-stops');
@@ -50,7 +52,8 @@ export function initPlanner({ map, rotatingPane, locate, sheetInsets, railLines,
   power.innerHTML = PACES.map(([key, name]) =>
     `<option value="${key}">${name} · ${POWER_LEVELS[key]} W · ~${Math.round(flatSpeed(POWER_LEVELS[key]) * 3.6)} km/h</option>`).join('');
   power.value = recall('planPower') ?? 'endorfinado';
-  const savedProfile = recall('planProfile');
+  // "planMode" replaced "planProfile" when Todos became the default; the old key is ignored.
+  const savedProfile = recall('planMode');
   if (savedProfile) for (const r of document.querySelectorAll('input[name="plan-profile"]')) r.checked = r.value === savedProfile;
   const savedOptimize = recall('planOptimize');
   if (savedOptimize) for (const r of document.querySelectorAll('input[name="plan-optimize"]')) r.checked = r.value === savedOptimize;
@@ -73,8 +76,9 @@ export function initPlanner({ map, rotatingPane, locate, sheetInsets, railLines,
   const iconLayer = L.layerGroup().addTo(map);
   let iconLegs = []; // { path, glyph, color } of the selected journey
   let journeys = [];
-  let candidates = null; // all of "Balanceado"'s options, re-ranked when its weight changes
+  let cache = null; // the four profiles' answers to the current search; the mode and the weight only re-rank them
   let selected = 0;
+  let expanded = false; // the selected card shows its step-by-step timeline
   const SHOWN = 6;
 
   // ---------------------------------------------------------------- worker
@@ -241,7 +245,7 @@ export function initPlanner({ map, rotatingPane, locate, sheetInsets, railLines,
   // while the planner is open.
   map.on('popupclose', () => quiet(350));
   map.on('click', (e) => {
-    if (!details.open || Date.now() < quietUntil) return;
+    if (activeTab() !== 'tab-plan' || Date.now() < quietUntil) return;
     addTap(e.latlng);
   });
 
@@ -265,19 +269,23 @@ export function initPlanner({ map, rotatingPane, locate, sheetInsets, railLines,
     stopsList.querySelector(`li[data-i="${stops.length - 2}"] input`)?.focus();
   });
 
-  $('#plan-swap').addEventListener('click', () => {
+  function swapStops() {
     stops.reverse();
     syncMarkers();
     renderStops();
+    renderSummary();
     update();
-  });
+  }
+  $('#plan-swap').addEventListener('click', swapStops);
+  $('#plan-od-swap').addEventListener('click', swapStops);
 
   $('#plan-clear').addEventListener('click', () => {
     stops = [null, null];
     syncMarkers();
     renderStops();
     journeys = [];
-    candidates = null;
+    cache = null;
+    showDurations();
     routeLayer.clearLayers();
     iconLegs = [];
     iconLayer.clearLayers();
@@ -286,6 +294,7 @@ export function initPlanner({ map, rotatingPane, locate, sheetInsets, railLines,
     clearLabels();
     focusLines(null);
     results.innerHTML = '';
+    results.removeAttribute('aria-busy');
     status.textContent = '';
     map.getContainer().classList.remove('route-shown');
     setPlanned(false);
@@ -426,19 +435,20 @@ export function initPlanner({ map, rotatingPane, locate, sheetInsets, railLines,
 
   // ---------------------------------------------------------------- planned view
 
-  // With a route found, the form folds into one "A → B" line and the options come
-  // first; tapping the line (or "Editar") opens the form again.
+  // With a route found, the form folds into an origin/destination header and the
+  // options come first; tapping the header opens the form again.
   const summaryEl = $('#plan-summary');
   function renderSummary() {
     const pts = stops.filter(Boolean);
-    summaryEl.innerHTML = `<span class="plan-summary-route">${pts.map((p, k) => {
-      const i = stops.indexOf(p);
-      return `<span class="pin ${role(i)}" aria-hidden="true">${pinText(i)}</span><span class="plan-summary-label">${esc(p.label)}</span>${k < pts.length - 1 ? '<span class="sep" aria-hidden="true">→</span>' : ''}`;
-    }).join('')}</span><span class="plan-summary-edit">Editar</span>`;
+    const first = pts[0], last = pts.at(-1), between = pts.length - 2;
+    const row = (p) => `<span class="plan-od-row"><span class="pin ${role(stops.indexOf(p))}" aria-hidden="true">${pinText(stops.indexOf(p))}</span><span class="plan-od-label">${esc(p.label)}</span></span>`;
+    summaryEl.innerHTML = `<span class="sr-only">Editar trajeto: </span>${row(first)}${between > 0
+      ? `<span class="plan-od-row via"><span class="pin via" aria-hidden="true">${between}</span><span class="plan-od-label">${between} ${between === 1 ? 'parada' : 'paradas'}</span></span>`
+      : ''}${row(last)}`;
   }
   function setPlanned(on) {
     details.classList.toggle('planned', on);
-    summaryEl.hidden = !on;
+    od.hidden = !on;
     if (on) renderSummary();
   }
   summaryEl.addEventListener('click', () => {
@@ -483,34 +493,46 @@ export function initPlanner({ map, rotatingPane, locate, sheetInsets, railLines,
   weight.addEventListener('input', () => {
     remember('planTimeWeightK', String(timeWeight()));
     syncWeight();
-    if (!candidates) return;
-    journeys = balance(candidates, timeWeight()).slice(0, SHOWN);
-    selected = 0;
-    render();
+    present();
   });
   const at = $('#plan-at');
   const arterials = $('#plan-arterials');
   arterials.checked = recall('planAvoidArterials') !== '0';
-  arterials.addEventListener('change', () => { remember('planAvoidArterials', arterials.checked ? '1' : '0'); update(); });
+  arterials.addEventListener('change', () => { remember('planAvoidArterials', arterials.checked ? '1' : '0'); syncMoreValue(); update(); });
   // One plain sentence under the mode buttons says what the selected mode does.
   const MODE_CAPTION = {
+    all: 'Todos os modos: a melhor rota de cada um, comparadas',
     bike: 'Bici + ônibus e trilhos; dá para deixar a bici num bicicletário',
     carry: 'Bici + ônibus e trilhos, sempre levando a bici',
     walk: 'Ônibus e trilhos, a pé',
     cycle: 'Só de bicicleta, sem transporte público',
   };
+  // "Mais opções" shows the current pace and departure, so they don't hide in the fold.
+  function syncMoreValue() {
+    const parts = [];
+    if (profile() !== 'walk') parts.push(PACES.find(([k]) => k === power.value)?.[1]);
+    const m = /^\d{4}-(\d\d)-(\d\d)T(\d\d:\d\d)/.exec(at.value);
+    parts.push(m ? `saída ${m[2]}/${m[1]} ${m[3]}` : 'saída agora');
+    $('#plan-more-value').textContent = `· ${parts.filter(Boolean).join(' · ')}`;
+  }
   function syncPower() {
     $('#plan-power-field').hidden = profile() === 'walk';
     $('#plan-arterials-field').hidden = profile() === 'walk';
     $('#plan-mode-caption').textContent = MODE_CAPTION[profile()] ?? '';
+    syncMoreValue();
   }
   syncPower();
   for (const r of document.querySelectorAll('input[name="plan-profile"]')) {
-    r.addEventListener('change', () => { remember('planProfile', profile()); syncPower(); update(); });
+    r.addEventListener('change', () => {
+      remember('planMode', profile());
+      syncPower();
+      r.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+      if (cache) present(); else update(); // the answers of all four profiles are already here
+    });
   }
-  power.addEventListener('change', () => { remember('planPower', power.value); update(); });
-  at.addEventListener('change', update);
-  $('#plan-now').addEventListener('click', () => { at.value = ''; update(); });
+  power.addEventListener('change', () => { remember('planPower', power.value); syncMoreValue(); update(); });
+  at.addEventListener('change', () => { syncMoreValue(); update(); });
+  $('#plan-now').addEventListener('click', () => { at.value = ''; syncMoreValue(); update(); });
 
   // ---------------------------------------------------------------- search
 
@@ -519,69 +541,142 @@ export function initPlanner({ map, rotatingPane, locate, sheetInsets, railLines,
   /** Epoch ms of midnight (São Paulo) of the day `ms` falls in; journey times count from it. */
   const midnight = (ms) => Date.parse(`${spParts(new Date(ms)).iso}T00:00:00-03:00`);
 
-  async function update() {
-    const from = stops[0], to = stops[stops.length - 1];
-    if (!from || !to) {
-      status.textContent = !from ? 'Toque no mapa ou busque a origem.' : 'Agora o destino.';
-      return;
-    }
-    const id = ++searchId;
-    // The departure field is São Paulo time, which is UTC-3 all year.
-    const later = at.value ? new Date(`${at.value}-03:00`) : null;
-    const vehicles = later ? null : getBuses();
-    const mode = optimize();
-    const options = { profile: profile(), optimize: mode, timeWeight: timeWeight(), avoidArterials: arterials.checked, power: POWER_LEVELS[power.value], vehicles };
-    if (!loaded) {
-      status.textContent = 'Preparando o planejador…';
-      await ensureLoaded();
-      if (id !== searchId) return;
-    }
-    status.textContent = 'Calculando…';
+  const PROFILES = ['bike', 'carry', 'walk', 'cycle'];
 
+  /** One profile's search: its journeys (a single chained one with stops) or why there are none. */
+  async function searchProfile(id, points, start0, base, options, profileKey) {
     // With stops in between, each leg leaves when the previous one arrives, and the
     // trip is the best option of every leg, one after the other.
-    const points = stops.filter(Boolean);
-    let start = (later ?? new Date()).getTime();
-    const base = midnight(start);
+    let start = start0;
     let reply = null;
     const parts = [];
     for (let k = 0; k + 1 < points.length; k++) {
-      reply = await ask({ kind: 'plan', from: points[k], to: points[k + 1], at: start, ...options });
-      if (id !== searchId) return;
-      if (reply.kind === 'error') { status.textContent = `Não deu para calcular: ${reply.message}`; return; }
-      loaded = true;
-      if (!reply.journeys.length) {
-        status.textContent = points.length > 2 ? `Sem opção até a parada ${k + 1}.` : 'Nenhuma opção encontrada.';
-        journeys = []; render();
-        return;
-      }
-      if (points.length === 2) break;
-      const best = mode === 'balanced' ? balance(reply.journeys, timeWeight())[0] : reply.journeys[0];
+      // Named points, so legs read "até Rua X" instead of "até Destino".
+      const named = (p) => ({ ...p, name: p.label });
+      reply = await ask({ kind: 'plan', from: named(points[k]), to: named(points[k + 1]), at: start, ...options, profile: profileKey });
+      if (id !== searchId) return null;
+      if (reply.kind === 'error') return { error: reply.message, journeys: [] };
+      if (!reply.journeys.length) return { journeys: [], live: false, failedAt: k };
+      for (const j of reply.journeys) j.profile ??= profileKey;
+      if (points.length === 2) return { journeys: reply.journeys, live: reply.live };
+      const best = options.optimize === 'balanced' ? balance(reply.journeys, options.timeWeight)[0] : reply.journeys[0];
       const shift = (midnight(start) - base) / 1000; // legs after midnight keep counting from day one
       parts.push(shiftJourney(best, shift));
       start = midnight(start) + best.arrive * 1000;
     }
-
-    if (points.length === 2) {
-      candidates = mode === 'balanced' ? reply.journeys : null;
-      journeys = reply.journeys.slice(0, SHOWN);
-    } else {
-      candidates = null;
-      journeys = [{
-        profile: parts[0].profile,
+    return {
+      live: reply.live,
+      journeys: [{
+        profile: profileKey,
         depart: parts[0].depart,
         arrive: parts.at(-1).arrive,
         kcal: parts.reduce((n, j) => n + j.kcal, 0),
         rides: parts.reduce((n, j) => n + j.rides, 0),
         legs: parts.flatMap((j) => j.legs),
-      }];
+      }],
+    };
+  }
+
+  async function update() {
+    const from = stops[0], to = stops[stops.length - 1];
+    if (!from || !to) {
+      cache = null;
+      status.textContent = !from ? 'Toque no mapa ou busque a origem.' : 'Agora o destino.';
+      return;
+    }
+    const id = ++searchId;
+    cache = null;
+    // The departure field is São Paulo time, which is UTC-3 all year.
+    const later = at.value ? new Date(`${at.value}-03:00`) : null;
+    const vehicles = later ? null : getBuses();
+    const options = { optimize: optimize(), timeWeight: timeWeight(), avoidArterials: arterials.checked, power: POWER_LEVELS[power.value], vehicles };
+    if (!loaded) {
+      status.textContent = 'Preparando o planejador…';
+      await ensureLoaded();
+      if (id !== searchId) return;
+    }
+    if (results.children.length) results.setAttribute('aria-busy', 'true'); // dims the old list while it re-runs
+    status.textContent = 'Calculando…';
+
+    // Every mode is searched, whichever is selected, so switching is instant and each
+    // button can show its duration.
+    const points = stops.filter(Boolean);
+    const start = (later ?? new Date()).getTime();
+    const base = midnight(start);
+    const answers = await Promise.all(PROFILES.map((p) => searchProfile(id, points, start, base, options, p)));
+    if (id !== searchId || answers.includes(null)) return;
+    if (answers.every((a) => a.error)) { results.removeAttribute('aria-busy'); status.textContent = `Não deu para calcular: ${answers[0].error}`; return; }
+    cache = { later, points: points.length, byProfile: Object.fromEntries(PROFILES.map((p, i) => [p, answers[i]])) };
+    loaded = true;
+    selected = 0;
+    present();
+  }
+
+  const BY_TIME = (a, b) => a.arrive - b.arrive || a.kcal - b.kcal;
+  const BY_ENERGY = (a, b) => a.kcal - b.kcal || a.arrive - b.arrive;
+  /** The journeys sorted by the selected priority (balanced re-ranks with the slider's weight). */
+  function rank(list) {
+    const mode = optimize();
+    return mode === 'balanced' ? balance([...list], timeWeight()) : [...list].sort(mode === 'energy' ? BY_ENERGY : BY_TIME);
+  }
+  /** Same sequence of legs and the same times: one journey, whichever profile found it. */
+  const sameTrip = (j) => `${j.depart}|${j.arrive}|${j.legs.map((l) => `${l.kind}:${l.mode ?? ''}:${l.route ?? l.rail ?? ''}`).join(',')}`;
+
+  /** The list for the selected mode, from the cached answers: no new search. */
+  function present() {
+    if (!cache) return;
+    const mode = profile();
+    const { byProfile, later } = cache;
+    const stopsTrip = cache.points > 2;
+    if (mode === 'all') {
+      const all = PROFILES.flatMap((p) => byProfile[p].journeys);
+      const unique = new Map();
+      for (const j of all) if (!unique.has(sameTrip(j))) unique.set(sameTrip(j), j);
+      const merged = rank([...unique.values()]);
+      if (stopsTrip) journeys = merged;
+      else {
+        // The best of each profile always makes the list, the rest of it the next best overall.
+        const picked = new Set(PROFILES.map((p) => unique.get(sameTrip(rank(byProfile[p].journeys)[0]))).filter(Boolean));
+        for (const j of merged) if (picked.size < SHOWN) picked.add(j);
+        journeys = merged.filter((j) => picked.has(j));
+      }
+    } else {
+      const list = byProfile[mode].journeys;
+      journeys = stopsTrip ? list : (optimize() === 'balanced' ? balance([...list], timeWeight()) : list).slice(0, SHOWN);
+    }
+    showDurations();
+    if (!journeys.length) {
+      const failedAt = mode === 'all' ? null : byProfile[mode].failedAt;
+      status.textContent = stopsTrip && failedAt != null ? `Sem opção até a parada ${failedAt + 1}.` : 'Nenhuma opção encontrada.';
+      render();
+      return;
     }
     selected = 0;
-    const live = later || profile() === 'cycle' ? '' : reply.live ? ' · ônibus ao vivo' : '';
-    status.textContent = points.length > 2
-      ? `Com ${points.length - 2} ${points.length === 3 ? 'parada' : 'paradas'}${live}`
+    expanded = journeys.length === 1; // a trip with stops has one option per mode: open it when alone
+    const liveOf = (p) => p !== 'cycle' && byProfile[p].live;
+    const live = !later && (mode === 'all' ? PROFILES.some(liveOf) : liveOf(mode)) ? ' · ônibus ao vivo' : '';
+    status.textContent = stopsTrip
+      ? `Com ${cache.points - 2} ${cache.points === 3 ? 'parada' : 'paradas'}${live}`
       : `${journeys.length} ${journeys.length === 1 ? 'opção' : 'opções'}${live}`;
     render();
+  }
+
+  // Under each mode button: the duration of its fastest journey, whatever the priority.
+  const MODE_NAME = { all: 'Todos os modos', bike: 'Intermodal, bicicleta e estacionar', carry: 'Intermodal com bicicleta', walk: 'Intermodal, a pé', cycle: 'Só bicicleta' };
+  function showDurations() {
+    const fastest = (list) => (list.length ? Math.min(...list.map((j) => j.arrive - j.depart)) : null);
+    const secs = {};
+    for (const p of PROFILES) secs[p] = cache ? fastest(cache.byProfile[p].journeys) : null;
+    const known = PROFILES.map((p) => secs[p]).filter((s) => s != null);
+    secs.all = cache ? (known.length ? Math.min(...known) : null) : null;
+    for (const r of document.querySelectorAll('input[name="plan-profile"]')) {
+      const time = r.nextElementSibling.querySelector('.plan-mode-time');
+      const s = secs[r.value];
+      time.textContent = !cache ? '' : s == null ? '—' : minutes(s);
+      time.classList.toggle('plan-mode-time-none', !!cache && s == null);
+      if (cache && s == null) r.setAttribute('aria-disabled', 'true'); else r.removeAttribute('aria-disabled');
+      r.setAttribute('aria-label', cache && s != null ? `${MODE_NAME[r.value]}, ${minutes(s)}` : cache ? `${MODE_NAME[r.value]}, sem opção` : MODE_NAME[r.value]);
+    }
   }
 
   function shiftJourney(j, s) {
@@ -608,7 +703,8 @@ export function initPlanner({ map, rotatingPane, locate, sheetInsets, railLines,
 
   function rideBadge(leg) {
     const label = leg.mode === 'bus' ? leg.route : leg.rail;
-    return `<span class="badge" style="background:${legColor(leg)}">${esc(label)}</span>`;
+    const bg = legColor(leg);
+    return `<span class="badge ${badgeInk(bg)}" style="background:${bg}">${esc(label)}</span>`;
   }
 
   function summary(j) {
@@ -617,61 +713,130 @@ export function initPlanner({ map, rotatingPane, locate, sheetInsets, railLines,
       if (leg.kind === 'station') return null; // inside the ride's time in the summary
       if (leg.kind === 'park') return MODE_ICON.park;
       return `${MODE_ICON[leg.kind]}<small>${minutes(leg.arrive - leg.depart)}</small>`;
-    }).filter(Boolean).join('<span class="sep">›</span>');
+    }).filter(Boolean).join('<span class="sep" aria-hidden="true">›</span>');
   }
 
-  function legDetail(leg) {
-    const span = `${hhmm(leg.depart)}–${hhmm(leg.arrive)}`;
-    if (leg.kind === 'station') {
-      const climb = leg.up ? `sobe ${leg.up} m` : leg.down ? `desce ${leg.down} m` : '';
-      const how = '';
-      return `<li><span class="leg-icon">${MODE_ICON.station}</span><div><b>${leg.dir === 'in' ? 'Entrar na' : 'Sair da'} estação ${esc(leg.at.name)}</b>
-        <span class="detail">${span} · ${minutes(leg.arrive - leg.depart)}${climb ? ` · ${climb}` : ''} · ${kcal(leg.kcal)}${how ? ` · ${how}` : ''}</span></div></li>`;
+  // Where each ride starts: "Ônibus 11:03 em Jose Maria Lisboa B/C · horário estimado".
+  const NOUN = { metro: 'Metrô', train: 'Trem' };
+  function meta(j) {
+    const r = j.legs.find((l) => l.kind === 'ride');
+    let text;
+    if (r) {
+      const noun = r.mode === 'bus' ? (r.hold ? 'Seletivo' : 'Ônibus') : NOUN[r.mode] ?? 'Trem';
+      text = `${noun} ${hhmm(r.depart)} em ${esc(r.from.name)}${r.live ? ' · ao vivo' : r.estimated ? ' · horário estimado' : ''}`;
+    } else {
+      const bikeOnly = j.profile === 'cycle' || j.legs.every((l) => l.kind === 'bike');
+      text = `${bikeOnly ? 'Só de bici' : 'A pé'} · ${km(tripMeters(j))}`;
     }
-    if (leg.interchange) {
-      return `<li><span class="leg-icon">${MODE_ICON.walk}</span><div><b>Baldeação: ${esc(leg.from.name)} → ${esc(leg.to.name)}</b>
-        <span class="detail">${span} · ${minutes(leg.arrive - leg.depart)} a pé${leg.withBike ? ', empurrando a bici' : ''} · ${kcal(leg.kcal)}</span></div></li>`;
+    if (j.legs.some((l) => l.kind === 'park')) text += ' · deixa a bici no bicicletário';
+    return text;
+  }
+
+  /** Metres of the whole trip: every leg but the station and parking steps. */
+  function tripMeters(j) {
+    return j.legs.reduce((m, leg) => (leg.kind === 'station' || leg.kind === 'park' ? m
+      : m + (leg.meters || pathLength(leg.path ?? [[leg.from.lat, leg.from.lon], [leg.to.lat, leg.to.lon]]))), 0);
+  }
+
+  // The step-by-step timeline: a node where each thing starts, a line down to the next
+  // one for the leg that starts there. Station steps become lines in the ride's row.
+  function timeline(j) {
+    const rows = [];
+    let pendingIn = null;
+    const row = (variant, time, place, what, metaLine, { line = '', node = '', extra = '' } = {}) => ({ variant, time, place, what, metaLine, line, node, extra });
+    const html = (r) => `
+      <li class="tl tl-${r.variant}">
+        <span class="tl-time">${hhmm(r.time)}</span>
+        <span class="tl-track" aria-hidden="true">${r.node || '<span class="tl-node"></span>'}<span class="tl-line"${r.line ? ` style="background:${r.line}"` : ''}></span></span>
+        <div class="tl-body">
+          <p class="tl-place">${esc(r.place)}</p>
+          ${r.what ? `<p class="tl-what">${r.what}</p>` : ''}
+          ${r.metaLine ? `<p class="tl-meta">${r.metaLine}</p>` : ''}${r.extra}
+        </div>
+      </li>`;
+    const climbText = (leg) => (leg.up ? `sobe ${leg.up} m` : leg.down ? `desce ${leg.down} m` : '');
+    const stationLine = (leg, verb) => `<p class="tl-meta">${MODE_ICON.station} ${verb} estação ${esc(leg.at.name)} · ${minutes(leg.arrive - leg.depart)}${climbText(leg) ? ` · ${climbText(leg)}` : ''} · ${kcal(leg.kcal)}</p>`;
+    for (const leg of j.legs) {
+      if (leg.kind === 'station') {
+        if (leg.dir === 'in') pendingIn = leg;
+        else if (rows.length) rows[rows.length - 1].extra += stationLine(leg, 'Sair da');
+      } else if (leg.kind === 'park') {
+        rows.push(row('park', leg.depart, leg.at.name, 'Deixe a bici aqui', esc(ACCESS[leg.at.access]?.label ?? ''),
+          { node: `<span class="tl-node tl-node-park">${icon('parking', 'icon-sm', 'filled')}</span>` }));
+      } else if (leg.kind === 'ride') {
+        const notes = [];
+        if (pendingIn) notes.push(stationLine(pendingIn, 'Entrar na'));
+        pendingIn = null;
+        const how = leg.withBike ? (leg.hold ? 'Com a bici: no bagageiro, se houver espaço' : leg.mode === 'bus' ? 'Com a bici: porta traseira' : 'Com a bici: último carro') : '';
+        if (how) notes.push(`<p class="tl-note">${icon('bike', 'icon-sm')} ${how}</p>`);
+        if (leg.live) notes.push(`<p class="tl-live"><span class="dot inline ok"></span> Ao vivo: ônibus ${esc(leg.live)}</p>`);
+        else if (leg.estimated) notes.push('<p class="tl-live">Horário estimado</p>');
+        rows.push(row('ride', leg.depart, leg.from.name,
+          `${MODE_ICON[leg.mode]} ${rideBadge(leg)}${leg.mode === 'bus' ? '' : ` ${esc(lineName(leg))}`} <span>sentido ${esc(leg.headsign.trim())}</span>`,
+          `${minutes(leg.arrive - leg.depart)} · ${leg.stops} ${leg.stops === 1 ? 'parada' : 'paradas'} · desça em ${esc(leg.to.name)}`,
+          { line: legColor(leg), extra: notes.join('') }));
+      } else if (leg.interchange) {
+        rows.push(row('walk', leg.depart, leg.from.name, `${MODE_ICON.walk} Baldeação até ${esc(leg.to.name)}`,
+          `${minutes(leg.arrive - leg.depart)} a pé${leg.withBike ? ', empurrando a bici' : ''} · ${kcal(leg.kcal)}`));
+      } else {
+        const what = leg.kind === 'bike' ? 'De bici' : leg.withBike ? 'A pé, empurrando a bici' : 'A pé';
+        rows.push(row(leg.kind, leg.depart, leg.from.name, `${MODE_ICON[leg.kind]} ${what}`,
+          `${minutes(leg.arrive - leg.depart)} · ${km(leg.meters)} · ${kcal(leg.kcal)}`));
+      }
     }
-    if (leg.kind === 'walk' || leg.kind === 'bike') {
-      const verb = leg.kind === 'bike' ? 'De bici' : leg.withBike ? 'A pé, empurrando a bici,' : 'A pé';
-      return `<li><span class="leg-icon">${MODE_ICON[leg.kind]}</span><div><b>${verb} até ${esc(leg.to.name)}</b>
-        <span class="detail">${span} · ${minutes(leg.arrive - leg.depart)} · ${km(leg.meters)} · ${kcal(leg.kcal)}</span></div></li>`;
-    }
-    if (leg.kind === 'park') {
-      return `<li><span class="leg-icon">${MODE_ICON.park}</span><div><b>Deixe a bici: ${esc(leg.at.name)}</b>
-        <span class="detail">${esc(ACCESS[leg.at.access]?.label ?? '')}</span></div></li>`;
-    }
-    const notes = [];
-    if (leg.withBike) notes.push(leg.hold ? 'Com a bici: no bagageiro, se houver espaço' : leg.mode === 'bus' ? 'Com a bici: porta traseira' : 'Com a bici: último carro');
-    if (leg.live) notes.push(`Ônibus ${esc(leg.live)} ao vivo`);
-    else if (leg.estimated) notes.push('Horário estimado');
-    return `<li><span class="leg-icon">${MODE_ICON[leg.mode]}</span><div><b>${rideBadge(leg)} ${esc(lineName(leg))}</b>
-      <span class="detail">sentido ${esc(leg.headsign.trim())}</span>
-      <span class="detail">${hhmm(leg.depart)} ${esc(leg.from.name)} → ${hhmm(leg.arrive)} ${esc(leg.to.name)} · ${leg.stops} ${leg.stops === 1 ? 'parada' : 'paradas'}</span>
-      ${notes.map((n) => `<span class="detail note-${leg.live ? 'live' : 'plain'}">${n}</span>`).join('')}</div></li>`;
+    rows.push(row('end', j.arrive, stops.filter(Boolean).at(-1).label, '',
+      `Total: ${minutes(j.arrive - j.depart)} · ${kcal(j.kcal)} · ${km(tripMeters(j))}`));
+    return rows.map(html).join('');
   }
 
   function render() {
+    results.removeAttribute('aria-busy');
     setPlanned(journeys.length > 0);
     $('#plan-share').hidden = !journeys.length;
-    if (journeys.length) window.dispatchEvent(new Event('plan-results'));
+    if (journeys.length) {
+      window.dispatchEvent(new Event('plan-results'));
+      if (activeTab() !== 'tab-plan') selectTab('tab-plan');
+    }
     writeLink();
-    results.innerHTML = journeys.map((j, i) => `
-      <li class="${i === selected ? 'selected' : ''}" data-i="${i}">
-        <button type="button" class="plan-journey" aria-expanded="${i === selected}">
-          <span class="when">${hhmm(j.depart)} → ${hhmm(j.arrive)} <b>${minutes(j.arrive - j.depart)}</b> <span class="kcal">${kcal(j.kcal)}</span></span>
-          <span class="legs">${summary(j)}</span>
-        </button>
-        ${i === selected ? `<ol class="plan-legs">${j.legs.map(legDetail).join('')}</ol>` : ''}
-      </li>`).join('');
+    renderList();
     draw();
+  }
+
+  function renderList() {
+    // Tags only when there is a choice: the fastest option, and the one using least energy.
+    const fastest = journeys.reduce((b, j, i) => (j.arrive < journeys[b].arrive ? i : b), 0);
+    const leanest = journeys.reduce((b, j, i) => (Math.round(j.kcal) < Math.round(journeys[b].kcal) ? i : b), 0);
+    results.innerHTML = journeys.map((j, i) => {
+      const open = i === selected && expanded;
+      const tags = journeys.length > 1 && (i === fastest || i === leanest) ? `<span class="plan-j-tags">${
+        i === fastest ? `<span class="plan-tag">${icon('fastest', 'icon-sm', 'filled')} Mais rápida</span>` : ''}${
+        i === leanest ? `<span class="plan-tag">${icon('least-effort', 'icon-sm', 'filled')} Menos esforço</span>` : ''}</span>` : '';
+      return `
+      <li class="plan-option${i === selected ? ' selected' : ''}" data-i="${i}"${i === selected ? ' aria-current="true"' : ''}>
+        <button type="button" class="plan-journey" aria-expanded="${open}" aria-controls="plan-legs-${i}">
+          ${tags}
+          <span class="plan-j-top">
+            <span class="plan-j-dur">${minutes(j.arrive - j.depart)}</span>
+            <span class="plan-j-kcal">${icon('least-effort', 'icon-sm')} ${kcal(j.kcal)}</span>
+            <span class="plan-j-times">${hhmm(j.depart)}–${hhmm(j.arrive)}</span>
+          </span>
+          <span class="legs">${summary(j)}</span>
+          <span class="plan-j-meta">${meta(j)}</span>
+        </button>
+        ${open ? `<ol class="plan-legs" id="plan-legs-${i}">${timeline(j)}</ol>` : ''}
+      </li>`;
+    }).join('');
   }
 
   results.addEventListener('click', (e) => {
     const li = e.target.closest('li[data-i]');
     if (!li || !e.target.closest('.plan-journey')) return;
-    selected = Number(li.dataset.i);
-    render();
+    const i = Number(li.dataset.i);
+    if (i !== selected) { selected = i; expanded = true; renderList(); draw(); }
+    else { expanded = !expanded; renderList(); }
+    const card = results.querySelector(`li[data-i="${i}"]`);
+    card?.querySelector('.plan-journey')?.focus({ preventScroll: true });
+    card?.scrollIntoView({ block: 'nearest' });
   });
 
   function draw() {
@@ -741,10 +906,10 @@ export function initPlanner({ map, rotatingPane, locate, sheetInsets, railLines,
       });
     }
     // The whole trip, for the label over it: every drawn leg end to end.
-    const tripPath = [], tripMeters = labelLegs.reduce((m, l) => m + l.meters, 0);
+    const tripPath = [];
     for (const leg of j.legs) if (leg.kind !== 'station' && leg.kind !== 'park') tripPath.push(...(leg.path ?? [[leg.from.lat, leg.from.lon], [leg.to.lat, leg.to.lon]]));
     tripLabel = tripPath.length > 1 && labelLegs.length > 1
-      ? { path: tripPath, info: `Total: ${minutes(j.arrive - j.depart)} · ${kcal(j.kcal)} · ${km(tripMeters)}` }
+      ? { path: tripPath, info: `Total: ${minutes(j.arrive - j.depart)} · ${kcal(j.kcal)} · ${km(tripMeters(j))}` }
       : null;
     if (!bounds.isValid()) return;
     for (const p of stops) if (p) bounds.extend([p.lat, p.lon]);
@@ -1078,7 +1243,7 @@ export function initPlanner({ map, rotatingPane, locate, sheetInsets, railLines,
   const shared = new URLSearchParams(location.hash.slice(1));
   const sharedPts = (shared.get('p') ?? '').split(';').map((x) => x.split(',').map(Number)).filter((x) => x.length === 2 && x.every(Number.isFinite));
   if (sharedPts.length >= 2) {
-    const mode = shared.get('m');
+    const mode = shared.get('m') ?? 'all';
     for (const r of document.querySelectorAll('input[name="plan-profile"]')) if (r.value === mode) r.checked = true;
     syncPower();
     stops = sharedPts.map(([lat, lon]) => ({ lat, lon, label: `${lat.toFixed(4)}, ${lon.toFixed(4)}` }));

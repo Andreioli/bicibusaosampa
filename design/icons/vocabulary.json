@@ -64,22 +64,22 @@
     },
     "swap": {
       "name": "arrows-up-down",
-      "description": "Inverter origem e destino."
+      "description": "Inverter origem e destino, também no cabeçalho da rota."
     },
     "fastest": {
       "name": "clock-hour-4",
       "filled": "clock-hour-4",
-      "description": "Prioridade: chegar mais rápido."
+      "description": "Prioridade e etiqueta: chegar mais rápido."
     },
     "balanced": {
       "name": "scale",
       "filled": "scale",
-      "description": "Prioridade: equilíbrio entre tempo e esforço."
+      "description": "Equilíbrio entre tempo e esforço (o ajuste em Mais opções)."
     },
     "least-effort": {
       "name": "battery-4",
       "filled": "battery-4",
-      "description": "Prioridade: gastar menos energia."
+      "description": "Energia: a prioridade menos esforço, a etiqueta e as kcal da rota."
     },
     "options": {
       "name": "adjustments-horizontal",

@@ -77,6 +77,7 @@
   --ref-easing-linear: cubic-bezier(0, 0, 1, 1);
   --ref-easing-in-out: cubic-bezier(0.42, 0, 0.58, 1);
   --ui-content-on-color: var(--ref-color-white);
+  --ui-content-on-light: var(--ref-color-stone-900);
   --ui-toast-surface: var(--ref-color-alpha-night-94);
   --ui-outline-subtle: var(--ref-color-alpha-black-15);
   --ui-shadow-raised: 0px 4px 24px var(--ref-color-alpha-black-18);

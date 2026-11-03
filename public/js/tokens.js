@@ -6,6 +6,7 @@ export const tokens = {
   "ui": {
     "content": {
       "onColor": "#ffffff",
+      "onLight": "#1c1917",
       "primary": {
         "light": "#1c1917",
         "dark": "#f5f5f4"

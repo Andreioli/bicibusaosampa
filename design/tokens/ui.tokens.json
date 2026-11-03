@@ -16,38 +16,34 @@
                 "min": 4.5
               },
               {
-                "against": "map.bus.usual.ok",
-                "min": 4.5,
-                "departure": {
-                  "rule": "texto 4,5:1",
-                  "reason": "Badge de linha: branco sobre o verde dá 3,30:1. A sombra do texto ajuda, mas não substitui contraste. Rever no redesign.",
-                  "since": "2026-11-03"
-                }
-              },
-              {
-                "against": "map.bus.usual.wait",
-                "min": 4.5,
-                "departure": {
-                  "rule": "texto 4,5:1",
-                  "reason": "Badge de linha: branco sobre o amarelo dá 1,92:1. Rever no redesign.",
-                  "since": "2026-11-03"
-                }
-              },
-              {
                 "against": "map.bus.offroute.ok",
                 "min": 4.5
               },
               {
-                "against": "map.bus.offroute.wait",
-                "min": 4.5,
-                "departure": {
-                  "rule": "texto 4,5:1",
-                  "reason": "Badge de linha: branco sobre o laranja dá 2,80:1. Rever no redesign.",
-                  "since": "2026-11-03"
-                }
+                "against": "map.bus.emtu",
+                "min": 4.5
+              }
+            ]
+          }
+        }
+      },
+      "on-light": {
+        "$value": "{ref.color.stone.900}",
+        "$description": "Texto sobre fundo colorido claro: badges de linha em verde, amarelo e laranja.",
+        "$extensions": {
+          "info.bicisampa": {
+            "usage": ["text"],
+            "contrast": [
+              {
+                "against": "map.bus.usual.ok",
+                "min": 4.5
               },
               {
-                "against": "map.bus.emtu",
+                "against": "map.bus.usual.wait",
+                "min": 4.5
+              },
+              {
+                "against": "map.bus.offroute.wait",
                 "min": 4.5
               }
             ]

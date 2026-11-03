@@ -1,6 +1,7 @@
 // Bici Busão Sampa — live map of the buses and rail lines that carry bicycles in Greater São Paulo.
 
 import { headingOfMove, headingOnRoute, iconTransform } from './heading.js';
+import { badgeInk } from './color.js';
 import { DEFAULT_VIEW, initLocate } from './locate.js';
 import { offsetPolylineClass } from './offset.js';
 import { ACCESS, parkingStatus } from './parking.js';
@@ -10,7 +11,7 @@ import { bikeStatus, describeTime } from './schedule.js';
 import { holidayName, spParts } from './time.js';
 import { icon } from './icons.js';
 import { tokens } from './tokens.js';
-import { initSheets, initUpdates, sheetInsets } from './ui.js';
+import { initSheets, initTabs, initUpdates, sheetInsets } from './ui.js';
 
 const RAIL_REFRESH_MS = 60_000;
 const BUS_REFRESH_MS = 20_000;
@@ -56,7 +57,7 @@ const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(
 
 // Rotation (leaflet-rotate): two fingers turning on phones, Shift + wheel with a mouse.
 // Lines and tiles turn with the map (they live in its rotatePane); markers stay upright.
-// The OSM / data credits live in the menu footer instead of the map corner.
+// The OSM / data credits live in the Linhas tab of the menu instead of the map corner.
 const map = L.map('map', {
   zoomControl: false, preferCanvas: true, attributionControl: false,
   rotate: true, touchRotate: true, rotateControl: false, bearing: 0,
@@ -305,7 +306,7 @@ function addRailGeometry(railGeo) {
 }
 
 function badge(line) {
-  return `<span class="badge" style="background:${line.color}">${esc(line.ref)}</span>`;
+  return `<span class="badge ${badgeInk(line.color)}" style="background:${line.color}">${esc(line.ref)}</span>`;
 }
 
 function lineRow(line) {
@@ -527,7 +528,8 @@ function busStopPopup({ name, lines }) {
 }
 
 function busBadge(code) {
-  return `<span class="badge" style="background:${lineColor(busLineByCode.get(code))}">${esc(code)}</span>`;
+  const bg = lineColor(busLineByCode.get(code));
+  return `<span class="badge ${badgeInk(bg)}" style="background:${bg}">${esc(code)}</span>`;
 }
 
 // A box in the bus colour with an arrow pointing right; turned by iconTransform()
@@ -857,6 +859,7 @@ function renderClock() {
 }
 
 initSheets();
+initTabs();
 initUpdates();
 const locate = initLocate(map);
 

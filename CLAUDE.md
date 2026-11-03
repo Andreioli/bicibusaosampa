@@ -60,7 +60,7 @@ append `window.__map = map;`.
       (heading − bearing), route trail icons (+ bearing), route labels.
     - On phones tile layers only refresh on moveend, so app.js calls `_update()` on
       them after a rotation.
-    - The map corner attribution is off; credits are in the menu footer.
+    - The map corner attribution is off; credits are in the footer of the Linhas tab.
   - Pure modules, imported by the tests too:
     - `time.js`: São Paulo time and holidays.
     - `schedule.js`: time-window engine.
@@ -84,8 +84,8 @@ append `window.__map = map;`.
       the line they're actually running.
     - EMTU seletivo patterns (`p.bikes`) ride on their estimated timetable in both
       layers, live coaches aside; their legs carry `hold` (teal, "no bagageiro").
-    - `planner.js` + `planner-worker.js`: the "Planejar viagem" section (open by
-      default). Points: origin, stops, destination, each a search box (Photon) or a tap
+    - `planner.js` + `planner-worker.js`: the Viagem tab of the menu (Linhas
+      holds rail, bus and EMTU status and the credits). Points: origin, stops, destination, each a search box (Photon) or a tap
       on the empty map (fills the first empty slot; with all set, the tap becomes the new
       destination and the old one a stop). Taps on buses, stations and lines keep their
       popups. Pins are draggable; their popup removes them. With stops, legs are planned
@@ -104,10 +104,15 @@ append `window.__map = map;`.
       badge; a dark ⇄ marker sits at each change of mode. Trail icons shrink when
       zoomed out (full size from zoom 15, half at 11). Route lines don't bubble
       clicks, so tapping them never adds a trip point.
-    - The mode selector (three emoji buttons under the section title, text in
-      aria-label/title) maps to profiles: 🚌 + 🚲 + 🅿️ (intermodal, bike, park) =
-      `bike`, 🚌 + 🚲 = `carry`, 🚌 (intermodal on foot) = `walk`, 🚲 (only the bike, no
-      transit: the planner's direct leg) = `cycle`. The worker downloads the network on the first point or
+    - The mode selector ("Todos", the default, then four icon buttons, text in
+      aria-label/title; each shows the duration of its fastest journey once a search ran).
+      Every search computes all four profiles, whatever is selected, and keeps the answers
+      (a mode change only re-ranks them; "Todos" mixes them: duplicates dropped, the best
+      of each profile always in the list; with stops, one chained journey per profile).
+      The four buttons map to profiles:
+      bus + bike + parking (intermodal, bike, park) = `bike`, bus + bike = `carry`, bus
+      (intermodal on foot) = `walk`, bike (only the bike, no transit: the planner's
+      direct leg) = `cycle`. The worker downloads the network on the first point or
       search, not on page load.
   - `data/routing/transit.json`: **generated** (`npm run build:data -- routing`) from the
     SPTrans GTFS plus `data/gtfs/emtu-seletivo.zip`: stops and per line-direction patterns
@@ -282,8 +287,8 @@ it). The rules below are what the colours *mean*; the tokens hold the values.
   (`locate.whenLocated`); the planner's 18 MB download waits for a real action.
 - On mobile data / data saver, the first planner download asks first; progress is
   shown from the worker's `progress` messages.
-- After a route is found the form folds into a tappable "A → B" summary
-  (`#plan-details.planned`) and results come first.
+- After a route is found the form folds into a compact origin/destination header (tap to
+  edit, swap button); mode, priority and Mais opções stay visible, and results come first.
 - Map taps that add a point show a toast with "Desfazer" and vibrate briefly.
 - Empty search fields offer 📍 Minha localização, 🏠 Casa / 💼 Trabalho (saved from a
   pin's popup) and recent picks. Search inputs are ARIA comboboxes.

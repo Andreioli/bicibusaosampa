@@ -140,6 +140,19 @@ button { font: inherit; -webkit-tap-highlight-color: transparent; }
 .sheet-body { overflow-y: auto; overscroll-behavior: contain; padding: 0 var(--ui-space-inset-lg) var(--ui-space-inset-lg); }
 .grip { display: none; }
 
+/* Menu header: title and clock, with the Viagem / Linhas tabs underneath. */
+#panel header { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: baseline;
+  column-gap: var(--ui-space-gap-sm); padding: var(--ui-space-inset-md) var(--ui-space-inset-lg) 0; }
+#panel .tabs { grid-column: 1 / -1; display: flex; gap: var(--ui-space-gap-xs);
+  margin: var(--ui-space-gap-xs) 0 0 calc(var(--ui-space-inset-sm) * -1); }
+.tabs [role="tab"] { min-height: var(--ui-size-touch); padding: 0 var(--ui-space-inset-sm);
+  border: 0; border-bottom: 2px solid transparent; background: transparent;
+  color: var(--ui-content-secondary); font: var(--ui-type-label); cursor: pointer; }
+.tabs [role="tab"][aria-selected="true"] { color: var(--ui-content-primary);
+  border-bottom-color: var(--ui-accent-default); font-weight: var(--ui-font-weight-bold); }
+.tabs [role="tab"]:focus-visible { outline: 2px solid var(--ui-accent-default); outline-offset: -2px; }
+[role="tabpanel"][hidden] { display: none; }
+
 h1 { margin: 0; font: var(--ui-type-title); }
 h2 { margin: var(--ui-space-gap-lg) 0 var(--ui-space-gap-sm); font: var(--ui-type-overline); text-transform: uppercase; letter-spacing: var(--ui-type-overline-tracking); color: var(--ui-content-secondary); }
 .clock { margin: 0; font: var(--ui-type-body-sm); font-variant-numeric: tabular-nums; color: var(--ui-content-secondary); }
@@ -178,6 +191,10 @@ h2 { margin: var(--ui-space-gap-lg) 0 var(--ui-space-gap-sm); font: var(--ui-typ
     opacity: 0.5;
   }
   .sheet header { padding-top: 0; }
+  #panel header { align-items: center; padding-top: 0; }
+  #panel header h1 { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  #panel .tabs { grid-column: 1; grid-row: 1; margin-top: 0; }
+  #panel .clock { grid-column: 2; grid-row: 1; }
   .leaflet-control-zoom { display: none; } /* pinch to zoom; keeps the top-left clear */
 }
 
@@ -305,8 +322,10 @@ h2 { margin: var(--ui-space-gap-lg) 0 var(--ui-space-gap-sm); font: var(--ui-typ
   text-align: center;
   text-shadow: var(--ui-shadow-text-on-color);
 }
+.badge.on-light { color: var(--ui-content-on-light); text-shadow: none; }
 
-footer { margin-top: var(--ui-space-gap-lg); font: var(--ui-type-caption); color: var(--ui-content-secondary); }
+#panel-lines > section + section { margin-top: var(--ui-space-gap-sm); }
+footer { margin-top: var(--ui-space-gap-xl); font: var(--ui-type-caption); color: var(--ui-content-secondary); }
 footer a { color: var(--ui-accent-default); }
 
 /* ------------------------------------------------------------ map markers */
@@ -355,7 +374,7 @@ button .icon, summary .icon { pointer-events: none; }
 
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 
-.plan-stops { list-style: none; margin: var(--ui-space-gap-xs) 0 0; padding: 0; display: flex; flex-direction: column; gap: var(--ui-space-gap-xs); }
+.plan-stops { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--ui-space-gap-xs); }
 .plan-stop { display: grid; grid-template-columns: auto 1fr auto; gap: var(--ui-space-gap-sm); align-items: start; }
 .plan-stop > .pin { margin-top: var(--ui-space-gap-md); }
 .plan-search { min-width: 0; }
@@ -379,7 +398,6 @@ button .icon, summary .icon { pointer-events: none; }
 .plan-suggest .plan-suggest-note { color: var(--ui-content-secondary); cursor: default; }
 
 #panel .plan-icon-btn,
-.plan-actions button,
 #plan-now,
 .plan-menu button {
   min-height: var(--ui-size-touch);
@@ -390,9 +408,23 @@ button .icon, summary .icon { pointer-events: none; }
   cursor: pointer;
 }
 #panel .plan-icon-btn { width: var(--ui-size-touch); padding: 0; display: grid; place-items: center; }
-.plan-actions { display: flex; gap: var(--ui-space-gap-xs); margin-top: var(--ui-space-gap-sm); }
-.plan-actions button { flex: 1; padding: var(--ui-space-inset-sm) var(--ui-space-inset-sm); font: var(--ui-type-body-sm); }
+.plan-actions { display: flex; gap: var(--ui-space-gap-xs); margin: 0; }
+.plan-actions button {
+  flex: none;
+  min-height: var(--ui-size-touch);
+  padding: 0 var(--ui-space-inset-sm);
+  border: 0;
+  background: transparent;
+  color: var(--ui-accent-default);
+  font: var(--ui-type-label);
+  cursor: pointer;
+}
+.plan-actions #plan-clear { margin-left: auto; color: var(--ui-content-secondary); }
 #plan-now { padding: var(--ui-space-inset-sm) var(--ui-space-inset-md); font: var(--ui-type-body-sm); }
+
+/* Planner column: the controls stay in one stack; results follow. */
+#plan-details { display: flex; flex-direction: column; gap: var(--ui-space-gap-md); padding-top: var(--ui-space-inset-md); }
+#plan-details > * { margin: 0; }
 
 .pin {
   flex: none;
@@ -426,7 +458,7 @@ button .icon, summary .icon { pointer-events: none; }
 .plan-menu { display: flex; gap: var(--ui-space-gap-sm); align-items: center; }
 .plan-menu button { padding: var(--ui-space-inset-sm) var(--ui-space-inset-lg); }
 
-.plan-modes { display: flex; gap: var(--ui-space-gap-xs); margin: var(--ui-space-gap-sm) 0 var(--ui-space-gap-xs); padding: 0; border: 0; }
+.plan-modes { display: flex; gap: var(--ui-space-gap-xs); margin: 0; padding: 0; border: 0; }
 .plan-modes label { flex: 1 1 0; min-width: 0; }
 .plan-modes input { position: absolute; opacity: 0; }
 .plan-modes label > span {
@@ -441,32 +473,40 @@ button .icon, summary .icon { pointer-events: none; }
   font: var(--ui-type-body-sm);
   cursor: pointer;
 }
-.plan-profiles { margin-top: var(--ui-space-gap-2xs); }
-.plan-profiles label > span { min-height: var(--ui-size-touch); padding: var(--ui-space-inset-sm) var(--ui-space-inset-2xs); grid-auto-flow: column; gap: 0; align-content: center; justify-content: center; padding-inline: var(--ui-space-inset-2xs); color: var(--ui-content-primary); }
-/* Up to three modes side by side in a quarter of the menu: the small icon size. */
+/* A fieldset doesn't shrink below its content by default: min-width 0 lets the row fit
+   the column, and scroll sideways only if five buttons really don't fit. */
+.plan-profiles { min-width: 0; overflow-x: auto; scroll-snap-type: x proximity; scrollbar-width: none; }
+.plan-profiles label { flex: 1 0 auto; min-width: calc(var(--ui-size-touch) + var(--ui-space-inset-md)); scroll-snap-align: nearest; }
+.plan-profiles label > span { min-height: var(--ui-size-touch); padding: var(--ui-space-inset-xs) var(--ui-space-inset-xs); grid-auto-flow: row; gap: 0; align-content: center; justify-content: center; color: var(--ui-content-primary); }
+.plan-mode-icons { display: inline-flex; align-items: center; justify-content: center; white-space: nowrap; }
+/* Five modes in one row; the row scrolls sideways before the icons would shrink below the small size. */
 .plan-profiles .icon { width: var(--ui-size-icon-sm); height: var(--ui-size-icon-sm); }
+.plan-mode-time { font: var(--ui-type-caption); font-variant-numeric: tabular-nums; color: var(--ui-content-secondary); }
+.plan-mode-time:empty { display: none; }
+.plan-profiles input[aria-disabled="true"] + span { color: var(--ui-content-secondary); }
 .plan-modes input:checked + span { border-color: var(--ui-accent-default); background: color-mix(in srgb, var(--ui-accent-default) 14%, transparent); font-weight: var(--ui-font-weight-strong); }
 .plan-modes input:focus-visible + span { outline: 2px solid var(--ui-accent-default); }
-.plan-optimize { margin-top: 0; }
+.plan-optimize label { flex: 1 1 auto; }
+.plan-optimize label > span { white-space: nowrap; padding: var(--ui-space-inset-sm); }
+@media (max-width: 360px) { .plan-optimize label > span { padding: var(--ui-space-inset-xs); } }
 
-/* "Mais opções" looks like a button; the chevron turns when it's open. */
+/* "Mais opções": a ghost row with the current values; the chevron turns when it's open. */
 #panel .plan-more > summary.plan-more-btn {
   list-style: none;
   display: flex;
-  justify-content: center;
+  justify-content: flex-start;
   align-items: center;
   gap: var(--ui-space-gap-sm);
-  margin: var(--ui-space-gap-sm) 0 var(--ui-space-gap-xs);
-  padding: var(--ui-space-inset-sm) var(--ui-space-inset-md);
-  border: 1px solid var(--ui-border-default);
-  border-radius: var(--ui-radius-control);
+  margin: 0;
+  padding: 0 var(--ui-space-inset-2xs);
+  min-height: var(--ui-size-touch);
   color: var(--ui-content-primary);
-  font: var(--ui-type-body-sm);
+  font: var(--ui-type-label);
 }
 .plan-more > summary.plan-more-btn::-webkit-details-marker { display: none; }
-.plan-more-chevron { color: var(--ui-content-secondary); transition: transform var(--ui-motion-duration-base) var(--ui-motion-easing-standard); }
+.plan-more-value { color: var(--ui-content-secondary); font: var(--ui-type-body-sm); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.plan-more-chevron { margin-left: auto; color: var(--ui-content-secondary); transition: transform var(--ui-motion-duration-base) var(--ui-motion-easing-standard); }
 .plan-more[open] .plan-more-chevron { transform: rotate(180deg); }
-.plan-more[open] > summary.plan-more-btn { border-color: var(--ui-accent-default); background: color-mix(in srgb, var(--ui-accent-default) 10%, transparent); }
 .plan-field { display: flex; gap: var(--ui-space-gap-sm); align-items: center; margin: var(--ui-space-gap-sm) 0; font: var(--ui-type-body-sm); color: var(--ui-content-secondary); }
 .plan-field[hidden] { display: none; }
 .plan-field select, .plan-field input {
@@ -486,36 +526,54 @@ button .icon, summary .icon { pointer-events: none; }
 .plan-weight input[type="range"] { flex: 1; min-width: 0; accent-color: var(--ui-accent-default); }
 .plan-weight .end { font: var(--ui-type-body-sm); }
 .plan-weight output { flex: none; min-width: 8.5em; text-align: right; font-variant-numeric: tabular-nums; }
-#plan-status { margin-top: var(--ui-space-gap-sm); }
+#plan-status { flex: 1; margin: 0; font: var(--ui-type-label); color: var(--ui-content-secondary); }
 
-.plan-results { list-style: none; margin: 0 0 var(--ui-space-gap-sm); padding: 0; }
-.plan-results > li { border-top: 1px solid var(--ui-border-default); }
-.plan-results > li.selected { background: color-mix(in srgb, var(--ui-accent-default) 8%, transparent); border-radius: var(--ui-radius-item); }
-.plan-journey {
-  display: flex;
-  flex-direction: column;
-  gap: var(--ui-space-gap-xs);
-  width: 100%;
-  min-height: var(--ui-size-touch);
-  padding: var(--ui-space-inset-md) var(--ui-space-inset-sm);
-  border: 0;
-  background: transparent;
-  color: var(--ui-content-primary);
-  text-align: left;
-  cursor: pointer;
-}
-.plan-journey .when { font-variant-numeric: tabular-nums; }
-.plan-journey .when b { margin-left: var(--ui-space-gap-xs); }
-.plan-journey .kcal { margin-left: var(--ui-space-gap-xs); color: var(--ui-content-secondary); font: var(--ui-type-body-sm); }
+/* Route cards: duration and energy lead, times on the right; the selected one has an accent edge. */
+.plan-results { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--ui-space-gap-sm); }
+.plan-results[aria-busy="true"] { opacity: 0.5; transition: opacity var(--ui-motion-duration-base) var(--ui-motion-easing-standard); }
+.plan-option { border: 1px solid var(--ui-border-default); border-radius: var(--ui-radius-control); background: var(--ui-surface-page); overflow: hidden; }
+.plan-option.selected { border-color: var(--ui-accent-default); outline: 1px solid var(--ui-accent-default); outline-offset: -2px;
+  background: color-mix(in srgb, var(--ui-accent-default) 8%, var(--ui-surface-page)); }
+.plan-journey { display: flex; flex-direction: column; gap: var(--ui-space-gap-xs); width: 100%; min-height: var(--ui-size-touch);
+  padding: var(--ui-space-inset-md); border: 0; background: transparent; color: var(--ui-content-primary); text-align: left; cursor: pointer; }
+.plan-journey:focus-visible { outline: 2px solid var(--ui-accent-default); outline-offset: -2px; }
+.plan-j-top { display: flex; align-items: baseline; gap: var(--ui-space-gap-sm); font-variant-numeric: tabular-nums; }
+.plan-j-dur { font: var(--ui-type-title); font-variant-numeric: tabular-nums; }
+.plan-j-kcal { display: inline-flex; gap: var(--ui-space-gap-2xs); align-items: center; font: var(--ui-type-label); }
+.plan-j-times { margin-left: auto; font: var(--ui-type-body-sm); color: var(--ui-content-secondary); font-variant-numeric: tabular-nums; }
+.plan-j-meta { font: var(--ui-type-body-sm); color: var(--ui-content-secondary); }
+.plan-j-tags { display: flex; flex-wrap: wrap; gap: var(--ui-space-gap-xs); }
+.plan-tag { display: inline-flex; gap: var(--ui-space-gap-2xs); align-items: center; padding: var(--ui-space-inset-2xs) var(--ui-space-inset-sm);
+  border: 1px solid var(--ui-accent-default); border-radius: var(--ui-radius-full); color: var(--ui-accent-default);
+  font: var(--ui-type-caption); font-weight: var(--ui-font-weight-strong); }
 .plan-journey .legs { display: flex; flex-wrap: wrap; gap: var(--ui-space-gap-2xs); align-items: center; }
-.plan-journey .legs small { margin-left: var(--ui-space-gap-2xs); color: var(--ui-content-secondary); }
+.plan-journey .legs small { margin-left: var(--ui-space-gap-2xs); color: var(--ui-content-secondary); font: var(--ui-type-body-sm); }
 .plan-journey .legs .badge { margin-left: var(--ui-space-gap-2xs); }
 .plan-journey .sep { color: var(--ui-content-secondary); }
-.plan-legs { list-style: none; margin: 0; padding: 0 var(--ui-space-inset-sm) var(--ui-space-inset-sm); }
-.plan-legs li { display: flex; gap: var(--ui-space-gap-sm); padding: var(--ui-space-inset-sm) 0; }
-.plan-legs .leg-icon { flex: none; width: var(--ui-size-icon-lg); text-align: center; color: var(--ui-content-secondary); }
-.plan-legs .detail { display: block; font: var(--ui-type-body-sm); color: var(--ui-content-secondary); }
-.plan-legs .detail.note-live { color: var(--map-status-ok); }
+
+/* Step-by-step timeline: a node where each step starts, a coloured line for the leg that starts there. */
+.plan-legs { list-style: none; margin: 0; padding: var(--ui-space-inset-md); border-top: 1px solid var(--ui-border-default); }
+.tl { display: grid; grid-template-columns: 3em var(--ui-size-icon-lg) minmax(0, 1fr); column-gap: var(--ui-space-gap-sm); }
+.tl-time { font: var(--ui-type-label); font-variant-numeric: tabular-nums; text-align: right; }
+.tl-track { display: flex; flex-direction: column; align-items: center; }
+.tl-node { flex: none; width: 12px; height: 12px; margin-top: var(--ui-space-gap-xs); border: 2px solid var(--ui-content-primary);
+  border-radius: var(--ui-radius-full); background: var(--ui-surface-page); }
+.tl-node-park { display: grid; place-items: center; width: var(--ui-size-icon-lg); height: var(--ui-size-icon-lg); margin-top: 0;
+  border: 2px solid var(--map-icon-on); border-radius: var(--ui-radius-small); background: var(--map-parking-signup); color: var(--map-icon-on); }
+.tl-line { flex: 1; width: 4px; min-height: var(--ui-size-icon-lg); margin: var(--ui-space-gap-2xs) 0; border-radius: var(--ui-radius-full); }
+.tl-bike .tl-line { background: var(--map-plan-bike); }
+.tl-walk .tl-line { width: 0; border-left: 3px dotted var(--map-plan-walk); border-radius: 0; }
+.tl-park .tl-line { background: var(--ui-border-default); }
+.tl-end .tl-line { display: none; }
+.tl-body { min-width: 0; padding-bottom: var(--ui-space-inset-md); }
+.tl-end .tl-body { padding-bottom: 0; }
+.tl-body p { margin: var(--ui-space-gap-2xs) 0 0; }
+.tl-body .tl-place { margin: 0; font: var(--ui-type-label); }
+.tl-what { display: flex; flex-wrap: wrap; gap: var(--ui-space-gap-xs); align-items: center; font: var(--ui-type-body-sm); }
+.tl-meta, .tl-live { font: var(--ui-type-body-sm); color: var(--ui-content-secondary); }
+.tl-body .tl-note { display: flex; gap: var(--ui-space-gap-xs); align-items: center; margin-top: var(--ui-space-gap-xs);
+  padding: var(--ui-space-inset-xs) var(--ui-space-inset-sm); border-radius: var(--ui-radius-item);
+  background: color-mix(in srgb, var(--ui-accent-default) 10%, transparent); font: var(--ui-type-label); }
 .plan-trail span {
   display: grid;
   place-items: center;
@@ -566,34 +624,21 @@ button .icon, summary .icon { pointer-events: none; }
 }
 
 /* Planner: one sentence about the selected mode. */
-.plan-mode-caption { margin: calc(var(--ui-space-gap-2xs) * -1) 0 var(--ui-space-gap-sm); }
+.plan-mode-caption { margin: calc(var(--ui-space-gap-sm) * -1) 0 0; }
 
-/* With a route found, the form folds into the summary line and results come first. */
-#plan-details.planned #plan-stops,
-#plan-details.planned .plan-actions,
-#plan-details.planned .plan-optimize,
-#plan-details.planned .plan-more { display: none; }
-.plan-summary {
-  display: flex;
-  gap: var(--ui-space-gap-sm);
-  align-items: center;
-  width: 100%;
-  min-height: var(--ui-size-touch);
-  margin: var(--ui-space-gap-xs) 0 var(--ui-space-gap-xs);
-  padding: var(--ui-space-inset-sm) var(--ui-space-inset-md);
-  border: 1px solid var(--ui-border-default);
-  border-radius: var(--ui-radius-control);
-  background: var(--ui-surface-page);
-  color: var(--ui-content-primary);
-  text-align: left;
-  cursor: pointer;
-}
-.plan-summary[hidden] { display: none; }
-.plan-summary-route { flex: 1; min-width: 0; display: flex; flex-wrap: wrap; gap: var(--ui-space-gap-xs) var(--ui-space-gap-xs); align-items: center; }
-.plan-summary-label { max-width: 11em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.plan-summary .sep { color: var(--ui-content-secondary); }
-.plan-summary-edit { flex: none; color: var(--ui-accent-default); font: var(--ui-type-label); }
-.plan-status-row { display: flex; gap: var(--ui-space-gap-sm); align-items: center; justify-content: space-between; }
+/* With a route found, the form folds into the origin/destination header; mode, priority and
+   "Mais opções" stay, and results come first. */
+#plan-details.planned :is(#plan-stops, .plan-actions, #plan-mode-caption) { display: none; }
+.plan-od { display: flex; gap: var(--ui-space-gap-sm); align-items: center; }
+.plan-od[hidden] { display: none; }
+.plan-od-route { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: var(--ui-space-gap-2xs);
+  padding: var(--ui-space-inset-sm) var(--ui-space-inset-md); border: 1px solid var(--ui-border-default);
+  border-radius: var(--ui-radius-control); background: var(--ui-surface-page); color: var(--ui-content-primary);
+  text-align: left; cursor: pointer; }
+.plan-od-row { display: flex; gap: var(--ui-space-gap-sm); align-items: center; min-width: 0; }
+.plan-od-row.via .plan-od-label { color: var(--ui-content-secondary); font: var(--ui-type-body-sm); }
+.plan-od-label { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.plan-status-row { min-height: var(--ui-size-control-sm); display: flex; gap: var(--ui-space-gap-sm); align-items: center; justify-content: space-between; }
 .plan-share, .plan-download {
   flex: none;
   min-height: var(--ui-size-control-sm);
@@ -610,6 +655,20 @@ button .icon, summary .icon { pointer-events: none; }
 .sheet:focus { outline: none; }
 
 /* Phones: the menu opens at a low "peek" height and grows on first use. */
+@media (max-width: 640px) {
+  /* With results, "Mais opções" shares the status row as an icon button (saves a row). */
+  #plan-details.planned { display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: var(--ui-space-gap-sm); row-gap: var(--ui-space-gap-sm); }
+  /* With a trip, the results matter more than the map behind them: the sheet grows, and
+     the route still shows above it. A height the user dragged to wins (inline style). */
+  #panel:has(#plan-details.planned) { max-height: 62dvh; }
+  #plan-details.planned > :not(.plan-more) { grid-column: 1 / -1; }
+  #plan-details.planned > .plan-status-row { grid-column: 1; grid-row: 5; }
+  #plan-details.planned > .plan-more { grid-column: 2; grid-row: 5; }
+  #plan-details.planned > .plan-more[open] { grid-column: 1 / -1; grid-row: 4; }
+  #plan-details.planned > .plan-results { grid-row: 6; }
+  /* Only the icon shows; the words stay for screen readers (like .sr-only). */
+  #plan-details.planned .plan-more-btn > span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+}
 @media (max-width: 640px) {
   #panel.peek { max-height: min(45dvh, 300px); }
 }

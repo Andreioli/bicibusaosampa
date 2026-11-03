@@ -169,6 +169,49 @@ export function sheetInsets() {
   return { bottom, left };
 }
 
+// ---------------------------------------------------------------- tabs
+
+const tabsOf = () => [...document.querySelectorAll('#panel [role="tab"]')];
+
+/** The id of the selected tab of the menu ('tab-plan' or 'tab-lines'). */
+export const activeTab = () => document.querySelector('#panel [role="tab"][aria-selected="true"]')?.id;
+
+/** Shows the tab with this id and hides the others' panels. */
+export function selectTab(id) {
+  const tab = document.getElementById(id);
+  if (!tab || tab.getAttribute('aria-selected') === 'true') return;
+  for (const t of tabsOf()) {
+    const on = t === tab;
+    t.setAttribute('aria-selected', String(on));
+    t.tabIndex = on ? 0 : -1;
+    document.getElementById(t.getAttribute('aria-controls')).hidden = !on;
+  }
+  document.querySelector('#panel .sheet-body').scrollTop = 0;
+  remember('panelTab', id);
+  window.dispatchEvent(new CustomEvent('tabchange'));
+}
+
+/** The menu's Viagem and Linhas tabs: click, arrow keys, Home and End; remembers the last one. */
+export function initTabs() {
+  const tabs = tabsOf();
+  const list = tabs[0].parentElement;
+  for (const tab of tabs) tab.addEventListener('click', () => selectTab(tab.id));
+  list.addEventListener('keydown', (e) => {
+    const i = tabs.indexOf(document.activeElement);
+    if (i < 0) return;
+    const next = { ArrowRight: (i + 1) % tabs.length, ArrowLeft: (i + tabs.length - 1) % tabs.length, Home: 0, End: tabs.length - 1 }[e.key];
+    if (next === undefined) return;
+    e.preventDefault();
+    selectTab(tabs[next].id);
+    tabs[next].focus();
+  });
+  // A shared trip always opens on Viagem.
+  let saved = null;
+  try { saved = localStorage.getItem('panelTab'); } catch {}
+  const id = location.hash.includes('p=') ? 'tab-plan' : saved;
+  if (id && tabs.some((t) => t.id === id)) selectTab(id);
+}
+
 // ---------------------------------------------------------------- updates (PWA)
 
 // The service worker (/sw.js, served by functions/sw.js.js with the deployed commit as

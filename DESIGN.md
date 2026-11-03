@@ -336,7 +336,8 @@ Não edite à mão: o teste confere.
 <!-- tokens:ui -->
 | Token | Valor | Para quê |
 |---|---|---|
-| `ui.content.on-color` | `#ffffff` | Texto e símbolos sobre fundo colorido: badges de linha, pins, toast. ⚠️ contraste com `map.bus.usual.ok` abaixo de 4.5:1; contraste com `map.bus.usual.wait` abaixo de 4.5:1; contraste com `map.bus.offroute.wait` abaixo de 4.5:1. |
+| `ui.content.on-color` | `#ffffff` | Texto e símbolos sobre fundo colorido: badges de linha, pins, toast. |
+| `ui.content.on-light` | `#1c1917` | Texto sobre fundo colorido claro: badges de linha em verde, amarelo e laranja. |
 | `ui.toast.surface` | `rgb(20 24 30 / 0.94)` | Fundo do toast ("Origem marcada no mapa · Desfazer"). |
 | `ui.outline.subtle` | `rgb(0 0 0 / 0.15)` | Aro das bolinhas de status na legenda e nas listas. |
 | `ui.shadow.raised` | `0px 4px 24px rgb(0 0 0 / 0.18)` | Painéis e botões flutuando sobre o mapa. Nunca em ícones do mapa: no celular cada sombra é repintada a cada quadro. |
@@ -570,15 +571,13 @@ completa. Só muda num navegador sem `system-ui`.
 
 ### 9. Exceções de contraste registradas, não escondidas (2026-11-03)
 
-Ao medir os pares, três problemas que já existiam apareceram:
+Ao medir os pares, um problema que já existia apareceu: a seta branca do ônibus amarelo
+tem 1,92:1 e a do laranja, 2,80:1 (o mínimo para símbolo é 3:1). (O texto branco dos
+badges de linha, que também ficava abaixo de 4,5:1, foi corrigido na decisão 20.)
 
-- a seta branca do ônibus amarelo tem 1,92:1 e a do laranja, 2,80:1 (o mínimo para
-  símbolo é 3:1);
-- o texto branco dos badges de linha sobre verde, amarelo e laranja fica abaixo de 4,5:1.
-
-Nenhum foi corrigido nesta etapa, porque corrigir muda o visual e as cores são decisões do
-mantenedor. Ficaram registrados como `departure` nos tokens, com o motivo, e o teste vai
-avisar quando deixarem de ser necessários.
+Não foi corrigido nesta etapa, porque corrigir muda o visual e as cores são decisões do
+mantenedor. Ficou registrado como `departure` nos tokens, com o motivo, e o teste vai
+avisar quando deixar de ser necessário.
 
 ### 10. Grade de 4 px, com 2 px de exceção (2026-11-03)
 
@@ -706,3 +705,40 @@ atributos de desenho (`viewBox`, `fill`, `stroke`…), e o build só os repete.
 mexe em script, teste e documentação. Agora são três passos: ensinar ao `fetch-icons.mjs`
 onde a nova publica, mudar o vocabulário, rodar `icons:fetch` e `build:icons`. O app não
 muda, e o teste avisa se algum significado ficou sem desenho.
+
+### 20. Menu em duas abas; rota com controles sempre à vista (2026-11-03)
+
+**Contexto.** O estado das linhas (metrô e trens, ônibus, seletivos) e os créditos ficavam
+embaixo dos resultados da viagem, e depois de uma busca as prioridades e o "Mais opções"
+sumiam: trocar para "Menos esforço" custava três toques. Os cartões abriam com o horário e
+deixavam a duração e as kcal em segundo plano.
+
+**Decisão.** O menu tem duas abas, **Viagem** (o planejador) e **Linhas** (estado das
+linhas e créditos). Com a rota na tela, o formulário vira um cabeçalho de origem e destino
+(um botão, com o de inverter ao lado), e modo, prioridade e "Mais opções" (com o ritmo e a
+saída atuais no resumo) continuam à vista. Os cartões abrem com a duração e as kcal, os
+horários à direita, uma linha de resumo e etiquetas ("Mais rápida", "Menos esforço") quando
+há mais de uma opção. Os passos de cada rota ficam numa linha do tempo: cada ponto de
+partida é um nó, e a linha colorida até o próximo é o trecho (a pé é pontilhado, como no
+mapa). O cartão escolhido só abre os passos num segundo toque.
+
+**Contraste dos badges.** O texto dos badges de linha sobre verde, amarelo e laranja passa
+a ser escuro (`ui.content.on-light`, escolhido por `badgeInk()` em `color.js` quando o
+branco dá menos de 4,5:1). O mantenedor aprovou a mudança visual: os badges verdes
+(inclusive o do SPTrans em todo cartão), amarelos e laranjas e as cores claras das linhas
+de trem trocam o texto. As exceções `departure` do branco sobre esses fundos saíram dos
+tokens. A seta branca nos ícones do mapa continua fora (decisão 9).
+
+**O que ficou de fora.** Mover o estado das linhas para a folha de camadas: ela é estreita
+demais a 280 px e misturaria dados ao vivo com a legenda.
+
+**Todos e a duração por modo.** O primeiro botão de modo, "Todos", é o padrão: antes, o
+modo "bici + ônibus + estacionar" vinha marcado e a primeira busca assumia uma escolha que
+ninguém fez. Toda busca agora calcula os quatro perfis, então trocar de modo é instantâneo
+e cada botão mostra, sob os ícones, a duração da sua viagem mais rápida (um "—" quando não
+há opção). Em "Todos" a lista mistura os perfis, sem repetidas, e traz sempre a melhor
+viagem de cada um. O modo lembrado ficou numa chave nova (`planMode`), para todo mundo
+começar em "Todos". Com cinco botões na coluna, a fileira rola na horizontal antes de
+encolher os ícones.
+
+**Rever** se a busca dos quatro perfis pesar em celulares lentos.
