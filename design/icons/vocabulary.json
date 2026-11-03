@@ -1,0 +1,106 @@
+{
+  "$description": "Os ícones da interface, por significado. O código pede o significado (icon('swap')), nunca o nome do Lucide: trocar o desenho de um significado é mudar uma linha aqui. Os ícones do mapa (ônibus, bicicletário, ponto, estação, os do trajeto) não estão aqui: são simbologia nossa, desenhada em app.js e planner.js.",
+  "lucide": "1.59.0",
+  "icons": {
+    "menu": {
+      "lucide": "menu",
+      "description": "Abrir e fechar o menu."
+    },
+    "layers": {
+      "lucide": "layers",
+      "description": "Camadas e legenda do mapa."
+    },
+    "locate": {
+      "lucide": "navigation",
+      "description": "Minha localização: o botão do mapa, a origem no planejador e a sugestão nos campos de busca."
+    },
+    "zoom-in": {
+      "lucide": "plus",
+      "description": "Aproximar o mapa."
+    },
+    "zoom-out": {
+      "lucide": "minus",
+      "description": "Afastar o mapa."
+    },
+    "bus": {
+      "lucide": "bus-front",
+      "description": "Ônibus: modos do planejador e trechos de ônibus."
+    },
+    "bike": {
+      "lucide": "bike",
+      "description": "Bicicleta: modos do planejador e trechos pedalando."
+    },
+    "parking": {
+      "lucide": "square-parking",
+      "description": "Bicicletário: deixar a bici e seguir sem ela."
+    },
+    "walk": {
+      "lucide": "footprints",
+      "description": "Trecho a pé e baldeação."
+    },
+    "metro": {
+      "lucide": "train-front-tunnel",
+      "description": "Trecho de metrô."
+    },
+    "train": {
+      "lucide": "train-front",
+      "description": "Trecho de trem (CPTM e linhas de superfície)."
+    },
+    "station": {
+      "lucide": "door-open",
+      "description": "Entrar ou sair de uma estação."
+    },
+    "add": {
+      "lucide": "plus",
+      "description": "Acrescentar: uma parada no trajeto."
+    },
+    "swap": {
+      "lucide": "arrow-up-down",
+      "description": "Inverter origem e destino."
+    },
+    "fastest": {
+      "lucide": "timer",
+      "description": "Prioridade: chegar mais rápido."
+    },
+    "balanced": {
+      "lucide": "scale",
+      "description": "Prioridade: equilíbrio entre tempo e esforço."
+    },
+    "least-effort": {
+      "lucide": "battery-full",
+      "description": "Prioridade: gastar menos energia."
+    },
+    "options": {
+      "lucide": "sliders-horizontal",
+      "description": "Mais opções do planejador."
+    },
+    "expand": {
+      "lucide": "chevron-down",
+      "description": "Abrir e fechar uma seção; gira quando aberta."
+    },
+    "warning": {
+      "lucide": "triangle-alert",
+      "description": "Aviso: linha fora da rota habitual, operação alterada."
+    },
+    "accessible": {
+      "lucide": "accessibility",
+      "description": "Ônibus acessível."
+    },
+    "home": {
+      "lucide": "house",
+      "description": "Lugar salvo como Casa."
+    },
+    "work": {
+      "lucide": "briefcase",
+      "description": "Lugar salvo como Trabalho."
+    },
+    "recent": {
+      "lucide": "history",
+      "description": "Busca recente."
+    },
+    "remove": {
+      "lucide": "x",
+      "description": "Remover uma parada."
+    }
+  }
+}

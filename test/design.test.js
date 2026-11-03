@@ -5,6 +5,7 @@ import { readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { buildTokens, DESIGN_DOC, MODIFIERS, OUT_CSS, OUT_JS, resolveContexts, resolveScheme, resolveValue, SCHEMES, updateDesignDoc } from '../scripts/build-tokens.mjs';
+import { buildIconsJs, loadIcons, updateIndexIcons } from '../scripts/build-icons.mjs';
 import { tokens } from '../public/js/tokens.js';
 
 const ROOT = join(import.meta.dirname, '..');
@@ -247,4 +248,43 @@ test('the palette holds only what some role uses', () => {
   }
   const unused = [...schemes.light.values()].filter((t) => t.path[0] === 'ref' && !used.has(t.path.join('.'))).map((t) => t.path.join('.'));
   assert.deepEqual(unused, [], 'remove these from ref.tokens.json, or give them a role');
+});
+
+// Icons (DESIGN.md, "Ícones").
+const vocabulary = JSON.parse(read('design/icons/vocabulary.json'));
+const uiFiles = () => ['public/index.html', 'public/style.css', ...readdirSync(join(ROOT, 'public/js')).filter((f) => f.endsWith('.js') && !['tokens.js', 'icons.js'].includes(f)).map((f) => `public/js/${f}`)];
+
+test('icons.js and the icons in index.html are up to date (run npm run build:icons)', () => {
+  const icons = loadIcons();
+  assert.equal(read('public/js/icons.js'), buildIconsJs(icons));
+  const html = read('public/index.html');
+  assert.equal(html, updateIndexIcons(html, icons));
+});
+
+test('every icon used is in the vocabulary, and every icon in the vocabulary is used', () => {
+  const used = new Set();
+  for (const file of uiFiles()) {
+    const text = read(file);
+    for (const [, name] of text.matchAll(/\bicon\('([\w-]+)'/g)) used.add(name);
+    for (const [, name] of text.matchAll(/data-icon="([\w-]+)"/g)) used.add(name);
+    // MODE_ICON in planner.js maps leg kinds through a list.
+    for (const [, list] of text.matchAll(/\[([^\]]*)\]\.map\(\(m\) => \[m, icon\(m\)\]\)/g)) for (const [, n] of list.matchAll(/'([\w-]+)'/g)) used.add(n);
+  }
+  for (const name of used) assert.ok(vocabulary.icons[name], `icon "${name}" is not in design/icons/vocabulary.json`);
+  for (const name of Object.keys(vocabulary.icons)) assert.ok(used.has(name), `icon "${name}" is in the vocabulary but nothing uses it`);
+});
+
+test('the Lucide copies are exactly the vocabulary, at its version, with the licence', () => {
+  const files = readdirSync(join(ROOT, 'design/icons/lucide'));
+  assert.ok(files.includes('LICENSE'), 'design/icons/lucide/LICENSE is missing (npm run icons:fetch)');
+  const wanted = new Set(Object.values(vocabulary.icons).map((i) => `${i.lucide}.svg`));
+  assert.deepEqual(files.filter((f) => f.endsWith('.svg')).sort(), [...wanted].sort());
+  for (const f of wanted) assert.ok(read(`design/icons/lucide/${f}`).includes(`lucide-static v${vocabulary.lucide}`), `${f} is not Lucide ${vocabulary.lucide} (npm run icons:fetch)`);
+});
+
+test('no emoji or text glyphs as icons in the interface', () => {
+  const glyph = /(?![©®™\u2190-\u21ff])\p{Extended_Pictographic}|[☰▾▴✕⇅⇄]/u; // ©, ™ and arrows in text (A → B) are text, not icons
+  for (const file of uiFiles()) {
+    read(file).split('\n').forEach((line, i) => assert.ok(!glyph.test(line), `${file}:${i + 1}: use an icon (DESIGN.md, "Ícones"): ${line.trim()}`));
+  }
 });

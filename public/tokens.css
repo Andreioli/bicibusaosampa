@@ -58,7 +58,6 @@
   --ref-font-size-14: 14px;
   --ref-font-size-16: 16px;
   --ref-font-size-18: 18px;
-  --ref-font-size-20: 20px;
   --ref-font-line-height-tight: 1.25;
   --ref-font-line-height-base: 1.4;
   --ref-font-line-height-none: 1;
@@ -66,7 +65,6 @@
   --ref-font-weight-600: 600;
   --ref-font-weight-700: 700;
   --ref-font-weight-800: 800;
-  --ref-font-tracking-tight: -0.5px;
   --ref-font-tracking-none: 0px;
   --ref-font-tracking-wide: 0.5px;
   --ref-font-family-system: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
@@ -131,10 +129,6 @@
   --ui-type-caption-tracking: var(--ref-font-tracking-none);
   --ui-type-overline: var(--ref-font-weight-600) var(--ref-font-size-12)/var(--ref-font-line-height-base) var(--ref-font-family-system);
   --ui-type-overline-tracking: var(--ref-font-tracking-wide);
-  --ui-type-symbol: var(--ref-font-weight-700) var(--ref-font-size-20)/var(--ref-font-line-height-none) var(--ref-font-family-system);
-  --ui-type-symbol-tracking: var(--ref-font-tracking-none);
-  --ui-type-symbol-sm: var(--ref-font-weight-400) var(--ref-font-size-18)/var(--ref-font-line-height-tight) var(--ref-font-family-system);
-  --ui-type-symbol-sm-tracking: var(--ref-font-tracking-tight);
   --ui-layer-sheet: 1000;
   --ui-layer-map-controls: 1001;
   --ui-layer-toast: 1200;

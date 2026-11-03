@@ -88,9 +88,7 @@ export const tokens = {
       "bodySm": "400 14px/1.4 system-ui, -apple-system, \"Segoe UI\", Roboto, sans-serif",
       "label": "600 14px/1.4 system-ui, -apple-system, \"Segoe UI\", Roboto, sans-serif",
       "caption": "400 12px/1.4 system-ui, -apple-system, \"Segoe UI\", Roboto, sans-serif",
-      "overline": "600 12px/1.4 system-ui, -apple-system, \"Segoe UI\", Roboto, sans-serif",
-      "symbol": "700 20px/1 system-ui, -apple-system, \"Segoe UI\", Roboto, sans-serif",
-      "symbolSm": "400 18px/1.25 system-ui, -apple-system, \"Segoe UI\", Roboto, sans-serif"
+      "overline": "600 12px/1.4 system-ui, -apple-system, \"Segoe UI\", Roboto, sans-serif"
     },
     "layer": {
       "sheet": "1000",

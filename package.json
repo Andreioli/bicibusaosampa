@@ -9,7 +9,9 @@
     "build:data": "node scripts/build-data.mjs",
     "test": "node --test",
     "deploy": "wrangler pages deploy",
-    "build:tokens": "node scripts/build-tokens.mjs"
+    "build:tokens": "node scripts/build-tokens.mjs",
+    "icons:fetch": "node scripts/fetch-icons.mjs",
+    "build:icons": "node scripts/build-icons.mjs"
   },
   "devDependencies": {
     "fflate": "^0.8.2",

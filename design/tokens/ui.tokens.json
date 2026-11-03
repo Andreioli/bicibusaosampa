@@ -615,36 +615,6 @@
             "usage": ["font"]
           }
         }
-      },
-      "symbol": {
-        "$value": {
-          "fontFamily": "{ref.font.family.system}",
-          "fontSize": "{ref.font.size.20}",
-          "fontWeight": "{ref.font.weight.700}",
-          "letterSpacing": "{ref.font.tracking.none}",
-          "lineHeight": "{ref.font.line-height.none}"
-        },
-        "$description": "Glifos de texto nos botões do mapa (+, −, ≡). Provisório: sai quando os ícones chegarem.",
-        "$extensions": {
-          "info.bicisampa": {
-            "usage": ["font"]
-          }
-        }
-      },
-      "symbol-sm": {
-        "$value": {
-          "fontFamily": "{ref.font.family.system}",
-          "fontSize": "{ref.font.size.18}",
-          "fontWeight": "{ref.font.weight.400}",
-          "letterSpacing": "{ref.font.tracking.tight}",
-          "lineHeight": "{ref.font.line-height.tight}"
-        },
-        "$description": "Emojis nos botões do planejador, um pouco apertados para caberem lado a lado. Provisório: sai quando os ícones chegarem.",
-        "$extensions": {
-          "info.bicisampa": {
-            "usage": ["font"]
-          }
-        }
       }
     },
     "layer": {

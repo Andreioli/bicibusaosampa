@@ -396,7 +396,7 @@
       "$description": "Raios de canto, nomeados pelo valor em px. 9999 é o arredondado total (pílula ou círculo)."
     },
     "font": {
-      "$description": "Escalas de texto. Tamanhos na grade de 2 px, nomeados pelo valor.",
+      "$description": "Escalas de texto. Tamanhos na grade de 2 px (10 a 18), nomeados pelo valor.",
       "size": {
         "10": {
           "$value": {
@@ -425,12 +425,6 @@
         "18": {
           "$value": {
             "value": 18,
-            "unit": "px"
-          }
-        },
-        "20": {
-          "$value": {
-            "value": 20,
             "unit": "px"
           }
         },
@@ -466,12 +460,6 @@
       },
       "tracking": {
         "$type": "dimension",
-        "tight": {
-          "$value": {
-            "value": -0.5,
-            "unit": "px"
-          }
-        },
         "none": {
           "$value": {
             "value": 0,

@@ -28,6 +28,15 @@ design/tokens/                 a fonte (você edita aqui)
   public/tokens.css            variáveis CSS, com cada modo         (gerado)
   public/js/tokens.js          os mesmos valores para JavaScript   (gerado)
   DESIGN.md, tabelas abaixo    a lista de tokens deste documento   (gerado)
+
+design/icons/                  os ícones da interface
+  vocabulary.json              significado → ícone do Lucide (você edita aqui)
+  lucide/*.svg, LICENSE        cópias do Lucide, na versão que o vocabulário fixa
+        │
+        ▼  npm run build:icons    (scripts/build-icons.mjs)
+        │
+  public/js/icons.js           icon('swap') → <svg>                (gerado)
+  public/index.html            os ícones da página, escritos no lugar (gerado)
 ```
 
 ## Como funciona
@@ -83,7 +92,7 @@ algum papel usa; zero não é token (`0` vale direto no CSS).
 | Escala | Paleta (`ref`) | Papéis |
 |---|---|---|
 | Espaço | 2, 4, 8, 12, 16, 24 | `ui.space.inset.*` (por dentro: padding) e `ui.space.gap.*` (entre coisas: gap e margin), de `2xs` a `xl`, com os mesmos passos; `ui.space.edge` (distância até a borda da tela) |
-| Texto | tamanhos 10–20, alturas de linha, pesos, espaçamento entre letras | `ui.type.*`: `title`, `heading`, `body` (16 px), `body-sm`, `label`, `caption`, `overline`; `ui.font.weight.*`; `map.label.*` para o texto sobre o mapa |
+| Texto | tamanhos 10–18, alturas de linha, pesos, espaçamento entre letras | `ui.type.*`: `title`, `heading`, `body` (16 px), `body-sm`, `label`, `caption`, `overline`; `ui.font.weight.*`; `map.label.*` para o texto sobre o mapa |
 | Raio | 4, 8, 12, 16, 9999 | `ui.radius.small`, `item`, `control`, `container`, `full` |
 | Tamanho | 4, 16–44, 280, 360 | `ui.size.touch` (44), `ui.size.icon.*`, `ui.size.control.*`, `ui.size.pin`, `ui.size.panel.*` |
 | Movimento | durações 0–1000 ms, curvas | `ui.motion.duration.fast/base/slow/loop`, `ui.motion.easing.*` |
@@ -144,6 +153,34 @@ ferramentas DTCG ignoram sem erro:
 Esses dados servem a gente e servem a máquina: uma IA que abre `map.tokens.json` sabe para
 que é cada cor, onde não usar e com o que precisa contrastar, sem adivinhar.
 
+### Ícones
+
+A interface usa o [Lucide](https://lucide.dev) (licença ISC), com o traço arredondado que
+vem dele. O código pede um **significado**, nunca o nome do Lucide:
+
+```js
+import { icon } from './icons.js';
+button.innerHTML = `${icon('swap', 'icon-sm')} Inverter`;
+```
+
+No `index.html`: `<i data-icon="swap" class="icon-sm"></i>`, que o build troca pelo
+`<svg>` ali mesmo, então o ícone aparece antes de qualquer script rodar.
+
+O vocabulário (`design/icons/vocabulary.json`) diz o que cada ícone significa e onde se
+usa. Trocar o desenho de um significado é mudar uma linha nele; o resto do app segue.
+
+O tamanho vem do CSS, pela escala `ui.size.icon.*`: `.icon` (20 px), `.icon-sm` (16 px),
+`.icon-lg` (24 px). A cor é a do texto (`currentColor`).
+
+**Os ícones do mapa não são Lucide.** O ônibus com a seta, a casinha e o círculo do
+bicicletário, o ponto de ônibus, as estações (Metrô e CPTM oficiais) e os ícones ao longo
+do trajeto são simbologia nossa, desenhada em `app.js` e `planner.js`: cada um carrega uma
+regra do domínio (sentido, status, tipo) e foi feito para pesar pouco no celular.
+
+**Sem emoji nem glifo de texto como ícone** (☰, ▾, ✕…): eles mudam de cara em cada
+aparelho e não seguem a cor do texto. Setas dentro de frases ("A → B") e © são texto e
+continuam.
+
 ## Tarefas comuns
 
 ### Mudar uma cor
@@ -157,6 +194,17 @@ que é cada cor, onde não usar e com o que precisa contrastar, sem adivinhar.
 O build reescreve sozinho `public/tokens.css`, `public/js/tokens.js`, as tabelas deste
 documento e as cores repetidas em `index.html` (`theme-color`) e no manifesto. Não edite
 nenhum deles à mão: o teste falha se não baterem com a fonte.
+
+### Acrescentar um ícone
+
+1. Procure o desenho em [lucide.dev](https://lucide.dev/icons).
+2. Acrescente o significado em `design/icons/vocabulary.json`, com o nome do Lucide e uma
+   descrição de quando usar. Antes, veja se um significado existente já serve.
+3. `npm run icons:fetch` copia o SVG para `design/icons/lucide/` (precisa de internet; é a
+   única etapa que precisa).
+4. `npm run build:icons`, depois `npm test`. Commite as cópias e os gerados.
+
+Para atualizar o Lucide, mude `"lucide"` no vocabulário e rode os mesmos dois comandos.
 
 ### Criar um token
 
@@ -240,6 +288,18 @@ código ainda não segue.
   de borda e de traço também viram tokens. **[meta]**: hoje só os tamanhos com papel
   (área de toque, ícones, controles, painéis) são tokens.
 
+### Ícones
+
+- Todo ícone usado está no vocabulário, e todo ícone do vocabulário é usado.
+  **[automática]**
+- As cópias em `design/icons/lucide/` são exatamente as do vocabulário, na versão dele,
+  com a licença. **[automática]**
+- `icons.js` e os ícones do `index.html` batem com o vocabulário. **[automática]**
+- Nenhum emoji ou glifo de texto como ícone em `index.html`, `style.css` e `public/js/`.
+  **[automática]**
+- Ícone ao lado de texto não precisa de nome; botão só com ícone precisa de `aria-label`.
+  **[revisão]**
+
 ### Mapa
 
 - O status nunca depende só da cor: tracejado = fora do horário da bici, pontilhado =
@@ -305,8 +365,6 @@ Não edite à mão: o teste confere.
 | `ui.type.label` | `600 14px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif` | Botões, opções e rótulos curtos. |
 | `ui.type.caption` | `400 12px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif` | Créditos, fonte dos dados, legendas miúdas. |
 | `ui.type.overline` | `600 12px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif` | Títulos de seção, em caixa alta. |
-| `ui.type.symbol` | `700 20px/1 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif` | Glifos de texto nos botões do mapa (+, −, ≡). Provisório: sai quando os ícones chegarem. |
-| `ui.type.symbol-sm` | `400 18px/1.25 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif` | Emojis nos botões do planejador, um pouco apertados para caberem lado a lado. Provisório: sai quando os ícones chegarem. |
 | `ui.layer.sheet` | `1000` | Menu e folha de camadas. |
 | `ui.layer.map-controls` | `1001` | Botões sobre o mapa, acima das folhas. |
 | `ui.layer.toast` | `1200` | O toast. |
@@ -526,7 +584,7 @@ de Android e iOS já usam (dp e pt em múltiplos de 4), então a escala viaja pa
 **Por quê.** Os campos já precisavam de 16 px para o iPhone não dar zoom ao tocar neles;
 agora o texto corrido acompanha. O app é usado na rua, muitas vezes no sol e em
 movimento: um ponto a mais pesa a favor da leitura. A escala ficou em passos de 2 px
-(10, 12, 14, 16, 18, 20).
+(10, 12, 14, 16, 18).
 
 ### 12. Estilos de texto compostos, e uma escala só para o mapa (2026-11-03)
 
@@ -567,3 +625,39 @@ Os popups eram montados com `style="margin:6px 0 0"` em 23 lugares do `app.js`, 
 alcance dos tokens. Viraram classes (`.leaflet-popup-content p`, `.meta`, `.source`…), e
 o teste só deixa inline o que é calculado na hora. Os popups passaram a usar a fonte do
 sistema, como o resto do app (antes herdavam a Helvetica do CSS do Leaflet).
+
+### 16. Ícones do Lucide, por significado, arredondados (2026-11-03)
+
+**Decisão.** A interface usa o Lucide, com um vocabulário por significado
+(`icon('swap')`, não `icon('arrow-up-down')`), o mesmo método do design system em que
+este se inspira. O traço fica o padrão do Lucide, arredondado.
+
+**Por quê.** Emoji muda de desenho em cada aparelho (o 🚌 do Android não é o do iPhone),
+não segue a cor do texto nem o modo escuro, e não tem tamanho previsível. O Lucide é
+consistente, leve (traço, sem preenchimento) e tem os desenhos de que o app precisa
+(bicicleta, ônibus, trem, metrô, estacionamento). O vocabulário deixa trocar a biblioteca
+ou um desenho sem caçar usos no código.
+
+**Fora.** Pontas quadradas: são uma marca visual de outro projeto, e aqui o arredondado
+combina com o resto da interface.
+
+### 17. SVGs copiados, sem dependência (2026-11-03)
+
+**Decisão.** Os SVGs do Lucide ficam commitados em `design/icons/lucide/`, só os que o
+vocabulário usa, na versão que ele fixa (`"lucide": "1.59.0"`), com a licença. Um script
+(`npm run icons:fetch`) baixa as cópias quando o vocabulário muda; o build e o site não
+precisam de internet nem de pacote.
+
+**Por quê.** O projeto valoriza poucas dependências. O pacote do Lucide traz milhares de
+ícones para usarmos duas dúzias. Com as cópias no repositório, um ícone novo aparece no
+diff do PR, e o teste confere que nenhuma cópia sobrou ou faltou.
+
+**Fora.** `lucide-static` como dependência de desenvolvimento: tiraria o passo de baixar,
+mas a troco de um pacote inteiro.
+
+### 18. Ícones do `index.html` escritos pelo build (2026-11-03)
+
+O `index.html` marca onde vai cada ícone (`<i data-icon="menu">`), e o build escreve o
+`<svg>` ali mesmo. Alternativa descartada: preencher os ícones com JavaScript ao carregar,
+que deixaria os botões vazios por um instante e custaria trabalho no celular a cada
+abertura.

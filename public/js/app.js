@@ -8,6 +8,7 @@ import { initPlanner } from './planner.js';
 import { railStatus as lineStatus } from './rail.js';
 import { bikeStatus, describeTime } from './schedule.js';
 import { holidayName, spParts } from './time.js';
+import { icon } from './icons.js';
 import { tokens } from './tokens.js';
 import { initSheets, initUpdates, sheetInsets } from './ui.js';
 
@@ -78,7 +79,7 @@ map.on('rotate', () => {
   clearTimeout(tileTimer);
   tileTimer = setTimeout(() => map.eachLayer((l) => { if (l instanceof L.TileLayer) l._update(); }), 150);
 });
-L.control.zoom({ position: 'topleft', zoomInTitle: 'Aproximar', zoomOutTitle: 'Afastar' }).addTo(map);
+L.control.zoom({ position: 'topleft', zoomInText: icon('zoom-in', 'icon-lg'), zoomInTitle: 'Aproximar', zoomOutText: icon('zoom-out', 'icon-lg'), zoomOutTitle: 'Afastar' }).addTo(map);
 
 // Base maps. OSM is desaturated in style.css so the line colours stand out; the
 // coloured relief is Pedal Hidrográfico's topo-hydrographic map of Greater SP
@@ -317,7 +318,7 @@ function linePopup(line) {
   return `<h3>${badge(line)} ${esc(line.name)}</h3>
     <p class="first">${esc(line.operator)}</p>
     <p><span class="dot inline ${s.status}"></span> <b>${STATUS_LABELS[s.status]}</b><br>${esc(s.detail)}</p>
-    ${s.live ? `<p>⚠️ ${esc(s.live)}</p>` : ''}
+    ${s.live ? `<p>${icon('warning', 'icon-sm')} ${esc(s.live)}</p>` : ''}
     ${s.note ? `<p class="meta">${esc(s.note)}</p>` : ''}`;
 }
 
@@ -334,7 +335,7 @@ function renderRail() {
       <span class="dot ${s.status}" title="${STATUS_LABELS[s.status]}"></span>
       <span><span class="name">${esc(line.name)}</span>
         <span class="detail">${esc(s.detail)}</span>
-        ${extra ? `<span class="detail clamp" title="${esc(extra)}">⚠️ ${esc(extra)}</span>` : ''}</span>
+        ${extra ? `<span class="detail clamp" title="${esc(extra)}">${icon('warning', 'icon-sm')} ${esc(extra)}</span>` : ''}</span>
     </li>`;
   });
   $('#rail-list').innerHTML = items.join('');
@@ -588,11 +589,11 @@ function busPopup(bus, s) {
   return `<h3>Ônibus ${esc(bus.prefix)}</h3>
     <p class="first">${busBadge(bus.line)} → ${esc(bus.to)}</p>
     ${line?.name ? `<p class="sub meta">${esc(line.name)}</p>` : ''}
-    ${bus.expected ? '' : '<p>⚠️ Fora da rota habitual</p>'}
+    ${bus.expected ? '' : `<p>${icon('warning', 'icon-sm')} Fora da rota habitual</p>`}
     ${rule}
-    ${bus.accessible ? '<p>♿ Acessível</p>' : ''}
+    ${bus.accessible ? `<p>${icon('accessible', 'icon-sm')} Acessível</p>` : ''}
     ${seen ? `<p class="first meta">Posição das ${describeTime(seen)}</p>` : ''}
-    ${line?.note ? `<p>⚠️ ${esc(line.note)}</p>` : ''}`;
+    ${line?.note ? `<p>${icon('warning', 'icon-sm')} ${esc(line.note)}</p>` : ''}`;
 }
 
 function lineItem(code, n) {
@@ -604,7 +605,7 @@ function lineItem(code, n) {
     ${busBadge(code)}
     <span><span class="name">${esc(line?.name ?? '')}</span>
       <span class="detail">${count}</span>
-      ${line?.note ? `<span class="detail">⚠️ ${esc(line.note)}</span>` : ''}</span>
+      ${line?.note ? `<span class="detail">${icon('warning', 'icon-sm')} ${esc(line.note)}</span>` : ''}</span>
   </li>`;
 }
 

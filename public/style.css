@@ -80,7 +80,6 @@ button { font: inherit; -webkit-tap-highlight-color: transparent; }
   background: var(--ui-surface-panel);
   color: var(--ui-content-primary);
   box-shadow: var(--ui-shadow-raised);
-  font: var(--ui-type-symbol);
   cursor: pointer;
 }
 .map-btn:active { transform: translateY(1px); }
@@ -96,8 +95,8 @@ button { font: inherit; -webkit-tap-highlight-color: transparent; }
 .leaflet-touch .leaflet-bar a {
   width: var(--ui-size-touch);
   height: var(--ui-size-control-md);
-  font: var(--ui-type-symbol);
-  line-height: var(--ui-size-control-md);
+  display: grid !important;
+  place-items: center;
   background: var(--ui-surface-panel);
   color: var(--ui-content-primary);
   border-color: var(--ui-border-default);
@@ -342,6 +341,12 @@ footer a { color: var(--ui-accent-default); }
 
 /* ------------------------------------------------------------ trip planner */
 
+/* Interface icons (js/icons.js, Lucide): drawn in the text colour, sized by the icon scale. */
+.icon { flex: none; display: inline-block; width: var(--ui-size-icon-md); height: var(--ui-size-icon-md); vertical-align: middle; }
+.icon-sm { width: var(--ui-size-icon-sm); height: var(--ui-size-icon-sm); }
+.icon-lg { width: var(--ui-size-icon-lg); height: var(--ui-size-icon-lg); }
+button .icon, summary .icon { pointer-events: none; }
+
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 
 .plan-stops { list-style: none; margin: var(--ui-space-gap-xs) 0 0; padding: 0; display: flex; flex-direction: column; gap: var(--ui-space-gap-xs); }
@@ -378,7 +383,7 @@ footer a { color: var(--ui-accent-default); }
   color: var(--ui-content-primary);
   cursor: pointer;
 }
-#panel .plan-icon-btn { width: var(--ui-size-touch); padding: 0; font: var(--ui-type-symbol-sm); }
+#panel .plan-icon-btn { width: var(--ui-size-touch); padding: 0; display: grid; place-items: center; }
 .plan-actions { display: flex; gap: var(--ui-space-gap-xs); margin-top: var(--ui-space-gap-sm); }
 .plan-actions button { flex: 1; padding: var(--ui-space-inset-sm) var(--ui-space-inset-sm); font: var(--ui-type-body-sm); }
 #plan-now { padding: var(--ui-space-inset-sm) var(--ui-space-inset-md); font: var(--ui-type-body-sm); }
@@ -401,7 +406,17 @@ footer a { color: var(--ui-accent-default); }
 .pin.to { background: var(--map-plan-pin-to); }
 .plan-pin { display: grid; place-items: center; background: transparent; }
 .plan-pin .pin { width: var(--ui-size-pin); height: var(--ui-size-pin); font: var(--ui-type-heading); }
-.plan-park { font: var(--ui-type-symbol); line-height: var(--ui-size-icon-lg); text-align: center; }
+.plan-park span {
+  display: grid;
+  place-items: center;
+  width: var(--ui-size-icon-lg);
+  height: var(--ui-size-icon-lg);
+  border-radius: var(--ui-radius-small);
+  background: var(--map-parking-signup);
+  border: 2px solid var(--map-icon-on);
+  color: var(--map-icon-on);
+  box-shadow: var(--ui-shadow-pin);
+}
 .plan-menu { display: flex; gap: var(--ui-space-gap-sm); align-items: center; }
 .plan-menu button { padding: var(--ui-space-inset-sm) var(--ui-space-inset-lg); }
 
@@ -421,7 +436,9 @@ footer a { color: var(--ui-accent-default); }
   cursor: pointer;
 }
 .plan-profiles { margin-top: var(--ui-space-gap-2xs); }
-.plan-profiles span { min-height: var(--ui-size-touch); padding: var(--ui-space-inset-sm) var(--ui-space-inset-2xs); align-content: start; font: var(--ui-type-symbol-sm); white-space: nowrap; letter-spacing: var(--ui-type-symbol-sm-tracking); }
+.plan-profiles span { min-height: var(--ui-size-touch); padding: var(--ui-space-inset-sm) var(--ui-space-inset-2xs); grid-auto-flow: column; gap: 0; align-content: center; justify-content: center; padding-inline: var(--ui-space-inset-2xs); color: var(--ui-content-primary); }
+/* Up to three modes side by side in a quarter of the menu: the small icon size. */
+.plan-profiles .icon { width: var(--ui-size-icon-sm); height: var(--ui-size-icon-sm); }
 .plan-modes input:checked + span { border-color: var(--ui-accent-default); background: color-mix(in srgb, var(--ui-accent-default) 14%, transparent); font-weight: var(--ui-font-weight-strong); }
 .plan-modes input:focus-visible + span { outline: 2px solid var(--ui-accent-default); }
 .plan-optimize { margin-top: 0; }
@@ -431,6 +448,7 @@ footer a { color: var(--ui-accent-default); }
   list-style: none;
   display: flex;
   justify-content: center;
+  align-items: center;
   gap: var(--ui-space-gap-sm);
   margin: var(--ui-space-gap-sm) 0 var(--ui-space-gap-xs);
   padding: var(--ui-space-inset-sm) var(--ui-space-inset-md);
@@ -440,8 +458,8 @@ footer a { color: var(--ui-accent-default); }
   font: var(--ui-type-body-sm);
 }
 .plan-more > summary.plan-more-btn::-webkit-details-marker { display: none; }
-.plan-more > summary.plan-more-btn::after { content: "▾"; color: var(--ui-content-secondary); transition: transform var(--ui-motion-duration-base) var(--ui-motion-easing-standard); }
-.plan-more[open] > summary.plan-more-btn::after { transform: rotate(180deg); }
+.plan-more-chevron { color: var(--ui-content-secondary); transition: transform var(--ui-motion-duration-base) var(--ui-motion-easing-standard); }
+.plan-more[open] .plan-more-chevron { transform: rotate(180deg); }
 .plan-more[open] > summary.plan-more-btn { border-color: var(--ui-accent-default); background: color-mix(in srgb, var(--ui-accent-default) 10%, transparent); }
 .plan-field { display: flex; gap: var(--ui-space-gap-sm); align-items: center; margin: var(--ui-space-gap-sm) 0; font: var(--ui-type-body-sm); color: var(--ui-content-secondary); }
 .plan-field[hidden] { display: none; }
@@ -489,7 +507,7 @@ footer a { color: var(--ui-accent-default); }
 .plan-journey .sep { color: var(--ui-content-secondary); }
 .plan-legs { list-style: none; margin: 0; padding: 0 var(--ui-space-inset-sm) var(--ui-space-inset-sm); }
 .plan-legs li { display: flex; gap: var(--ui-space-gap-sm); padding: var(--ui-space-inset-sm) 0; }
-.plan-legs .leg-icon { flex: none; width: 22px; text-align: center; }
+.plan-legs .leg-icon { flex: none; width: var(--ui-size-icon-lg); text-align: center; color: var(--ui-content-secondary); }
 .plan-legs .detail { display: block; font: var(--ui-type-body-sm); color: var(--ui-content-secondary); }
 .plan-legs .detail.note-live { color: var(--map-status-ok); }
 .plan-trail span {

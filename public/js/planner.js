@@ -5,6 +5,7 @@ import { placeName, searchPlaces } from './geocode.js';
 import { ACCESS } from './parking.js';
 import { balance, DEFAULT_TIME_WEIGHT, flatSpeed, POWER_LEVELS, TIME_WEIGHTS } from './raptor.js';
 import { spParts } from './time.js';
+import { icon } from './icons.js';
 import { tokens } from './tokens.js';
 import { toast } from './ui.js';
 
@@ -14,10 +15,11 @@ const PACES = [
   ['intenso', 'Intenso'],
   ['competicao', 'Competição'],
 ];
-const GPS_ICON = '<svg viewBox="0 0 512 512" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M445 4 29 195c-48 23-32 93 19 93h176v176c0 51 70 67 93 19L508 67c16-38-25-79-63-63z"/></svg>';
 const PLAN = tokens.map.plan;
 const COLORS = { walk: PLAN.walk, bike: PLAN.bike, busBike: PLAN.busBike, bus: PLAN.bus, emtu: PLAN.emtu };
-const MODE_ICON = { walk: '🚶', bike: '🚲', park: '🅿️', station: '🚉', bus: '🚌', metro: '🚇', train: '🚆' };
+// Each kind of leg and its icon (design/icons/vocabulary.json).
+const MODE_ICON = Object.fromEntries(['walk', 'bike', 'bus', 'metro', 'train', 'station'].map((m) => [m, icon(m)]));
+MODE_ICON.park = icon('parking');
 
 const $ = (sel) => document.querySelector(sel);
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
@@ -166,7 +168,7 @@ export function initPlanner({ map, rotatingPane, locate, sheetInsets, railLines,
       const box = document.createElement('div');
       box.className = 'plan-menu';
       box.innerHTML = `<b>${esc(ROLE[role(i)])}</b><button type="button" data-a="remove">Remover</button>
-        <button type="button" data-a="Casa">🏠 Casa</button><button type="button" data-a="Trabalho">💼 Trabalho</button>`;
+        <button type="button" data-a="Casa">${icon('home', 'icon-sm')} Casa</button><button type="button" data-a="Trabalho">${icon('work', 'icon-sm')} Trabalho</button>`;
       box.addEventListener('click', (e) => {
         const a = e.target.closest('button')?.dataset.a;
         if (!a) return;
@@ -191,8 +193,8 @@ export function initPlanner({ map, rotatingPane, locate, sheetInsets, railLines,
             aria-label="${ROLE[role(i)]}" placeholder="Buscar ${ROLE[role(i)].toLowerCase()}…" value="${esc(p?.label ?? '')}">
           <ul class="plan-suggest" id="plan-suggest-${i}" role="listbox" aria-label="Sugestões" hidden></ul>
         </div>
-        ${i === 0 ? `<button type="button" class="plan-icon-btn plan-gps" aria-label="Sair da minha localização" title="Minha localização">${GPS_ICON}</button>` : ''}
-        ${role(i) === 'via' ? '<button type="button" class="plan-icon-btn plan-remove" aria-label="Remover parada" title="Remover parada">✕</button>' : ''}
+        ${i === 0 ? `<button type="button" class="plan-icon-btn plan-gps" aria-label="Sair da minha localização" title="Minha localização">${icon('locate')}</button>` : ''}
+        ${role(i) === 'via' ? `<button type="button" class="plan-icon-btn plan-remove" aria-label="Remover parada" title="Remover parada">${icon('remove')}</button>` : ''}
       </li>`).join('');
   }
 
@@ -324,9 +326,9 @@ export function initPlanner({ map, rotatingPane, locate, sheetInsets, railLines,
     remember('planRecent', JSON.stringify(list.map(({ label, detail, lat, lon }) => ({ label, detail, lat, lon }))));
   }
   function quickPicks(i) {
-    const saved = Object.entries(places()).map(([name, p]) => ({ ...p, icon: name === 'Casa' ? '🏠' : '💼', detail: p.label, label: name, saved: true }));
-    const mine = i === 0 && locate ? [{ label: 'Minha localização', icon: '📍', gps: true }] : [];
-    return [...mine, ...saved, ...recents().map((r) => ({ ...r, icon: '🕘' }))];
+    const saved = Object.entries(places()).map(([name, p]) => ({ ...p, icon: icon(name === 'Casa' ? 'home' : 'work', 'icon-sm'), detail: p.label, label: name, saved: true }));
+    const mine = i === 0 && locate ? [{ label: 'Minha localização', icon: icon('locate', 'icon-sm'), gps: true }] : [];
+    return [...mine, ...saved, ...recents().map((r) => ({ ...r, icon: icon('recent', 'icon-sm') }))];
   }
 
   function pick(li, k) {
@@ -706,7 +708,7 @@ export function initPlanner({ map, rotatingPane, locate, sheetInsets, railLines,
       if (leg.kind === 'park') {
         L.marker([leg.at.lat, leg.at.lon], {
           pane: 'planPins',
-          icon: L.divIcon({ className: 'plan-park', html: '🅿️', iconSize: [22, 22], iconAnchor: [11, 11] }),
+          icon: L.divIcon({ className: 'plan-park', html: `<span>${icon('parking', 'icon-sm')}</span>`, iconSize: [24, 24], iconAnchor: [12, 12] }),
           keyboard: false,
         }).bindTooltip(`Deixe a bici: ${esc(leg.at.name)}`).addTo(routeLayer);
         continue;
